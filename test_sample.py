@@ -1,6 +1,6 @@
 
 import numpy as np
-from sample import add_nums
+from sample import *
 
 def test_add():
     x = 2
