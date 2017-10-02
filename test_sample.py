@@ -1,7 +1,7 @@
 
 import pytest
 import numpy as np
-import sample
+from sample import add_nums
 
 def test_add():
     x = 2
