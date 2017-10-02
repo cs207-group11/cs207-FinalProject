@@ -1,5 +1,4 @@
 
-import pytest
 import numpy as np
 from sample import add_nums
 
