@@ -1,7 +1,7 @@
 #Generic Function Written for both Reaction/Progress Rate for System of one or more equations. This file consists
 #the unit tests for the algorithm.
 
-import chemkin as original
+import chemkin_KM as original
 import numpy as np
 
 def test_single():
