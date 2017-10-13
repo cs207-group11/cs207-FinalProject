@@ -6,7 +6,8 @@ import numpy as np
 
 def test_single():
     #Tests whether the generic algorithm works for a system of one equation
-    assert original.prog_rate([[2.0,1.0,0.0]],None,[1.0,2.0,3.0],[10],False)==[20.0]
+    value  = original.prog_rate([[2.0,1.0,0.0]],None,[1.0,2.0,3.0],[10],False)
+    assert value==[20.0]
     
 def test_mulitresult():
     #Tests whether the generic algorithm works for a system of multiple equations
