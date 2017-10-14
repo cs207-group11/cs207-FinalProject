@@ -16,7 +16,7 @@ def progress_rate(v, x, k):
     EXAMPLES
     =========
     >>> progress_rate(np.array([[1,2,0], [2, 0, 2]]), np.array([1,2,1]), np.array([10,10]))
-    np.array([ 40.,  10.])
+    array([ 40.,  10.])
     """
     w = np.zeros(len(v))
     for i in range(len(v)):
@@ -40,7 +40,7 @@ def reaction_rate(v1, v2, x, k):
     EXAMPLES
     =========
     >>> reaction_rate(np.array([[1,2,0],[0,0,2]]), np.array([[0,0,1],[1,2,0]]), np.array([1,2,1]), np.array([10,10]))
-    np.array([-30, -60, 20])
+    array([-30., -60.,  20.])
     """
     w = progress_rate(v1, x, k)
     f = np.zeros(len(x))

@@ -1,4 +1,4 @@
-import chemkin
+from chemkin import *
 import numpy as np
 
 def test_reaction_rate():
