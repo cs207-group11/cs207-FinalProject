@@ -1,5 +1,5 @@
-
 import numpy as np
+
 def prog_rate(v1,v2,x,k,check):
     """
     Returns the progress (and reaction rate) of a system of elementary chemical reactions. 
@@ -53,6 +53,3 @@ def prog_rate(v1,v2,x,k,check):
         return prate
     else:
         return prate, np.dot((np.array(v2).T-np.array(v1).T),np.array(prate).T)
-
-    
-#The Unit tests for the generic algorithm are available below.
