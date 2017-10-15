@@ -54,8 +54,5 @@ def prog_rate(v1,v2,x,k,check):
     else:
         return prate, np.dot((np.array(v2).T-np.array(v1).T),np.array(prate).T)
 
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
     
 #The Unit tests for the generic algorithm are available below.

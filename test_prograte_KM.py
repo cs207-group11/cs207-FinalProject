@@ -19,6 +19,20 @@ def test_negative_k_error():
     except ValueError as err:
         assert(type(err) == ValueError)
 
+def test_not_boolean():
+    #Tests whether the generic algorithm works for a system of multiple equations
+    try:
+        assert original.prog_rate([[2.0,1.0,0.0]],None,[1.0,2.0,3.0],[10],2)
+    except ValueError as err:
+        assert(type(err) == ValueError)
+
+def test_negative_mole():
+    #Tests whether the generic algorithm works for a system of multiple equations
+    try:
+        assert original.prog_rate([[1.0,2.0,0.0],[2.0,0.0,2.0]],[[0.0,0.0,2.0],[0.0,-1.0,1.0]],[1.0,2.0,1.0],[10,10],False)
+    except ValueError as err:
+        assert(type(err) == ValueError)
+
 def test_negative_mole_error():
     #Tests whether the generic algorithm works for a system of multiple equations
     try:
