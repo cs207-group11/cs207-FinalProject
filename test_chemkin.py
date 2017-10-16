@@ -15,6 +15,7 @@ def test_base_reaction():
     return Reaction(rxn_type="Elementary",
                     is_reversible=False,
                     rxn_equation="H2 + OH =] H2O + H",
+                    species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
                     rate_coeffs_components={'k': 10},
                     reactant_stoich_coeffs={'H2' :1, 'OH':1},
                     product_stoich_coeffs={'H2O' :1, 'H':1})
@@ -25,6 +26,7 @@ def test_reaction_arrhenius():
     return Reaction(rxn_type="Elementary",
                     is_reversible=False,
                     rxn_equation="H2 + OH =] H2O + H",
+                    species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
                     rate_coeffs_components={'A': 10, 'E': 100},
                     reactant_stoich_coeffs={'H2' :1, 'OH':1},
                     product_stoich_coeffs={'H2O' :1, 'H':1})
@@ -35,6 +37,7 @@ def test_reaction_modified_arr():
     return Reaction(rxn_type="Elementary",
                     is_reversible=False,
                     rxn_equation="H2 + OH =] H2O + H",
+                    species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
                     rate_coeffs_components={'A': 10, 'E': 100, 'b':0.5},
                     reactant_stoich_coeffs={'H2' :1, 'OH':1},
                     product_stoich_coeffs={'H2O' :1, 'H':1})
@@ -45,11 +48,13 @@ def test_Reaction_special_fcns(test_base_reaction):
     assert str(test_base_reaction) == info_reaction
     assert len(test_base_reaction) == 4
 
-# def test_Reaction_get_unique_species(test_base_reaction):
-#     """Test get_unique_species functio (used to get
-#     values of species_list)."""
-#     expected = ['H2O', 'H2', 'H', 'OH']
-#     assert test_base_reaction.species_list == expected
+def test_Reaction_get_unique_species(test_base_reaction):
+    """Test get_unique_species function (used to get
+    values of species_list)."""
+    assert 'H2O' in test_base_reaction.unique_species
+    assert 'H2' in test_base_reaction.unique_species
+    assert 'H' in test_base_reaction.unique_species
+    assert 'OH' in test_base_reaction.unique_species
 
 def test_Reaction_set_zero_temperature(test_base_reaction):
     """Test setting reaction temperature to absolute 0..."""
@@ -66,27 +71,46 @@ def test_Reaction_set_valid_temperature(test_base_reaction):
     test_base_reaction.set_temperature(10)
     assert test_base_reaction.temperature == 10
 
-# def test_Reaction_order_dictionaries(test_base_reaction):
-#     """Test ordering of reaction"""
-#     expected = [4, 1, 2, 3]
-#     test_list = test_base_reaction.order_dictionaries({'H2':1, 'OH':2, 'H2O':3, 'H':4})
-#     assert test_list == expected
+def test_Reaction_order_dictionaries(test_base_reaction):
+    """Test ordering of reaction"""
+    # order of species_list : ['H', 'O', 'OH', 'H2', 'H2O', 'O2']
+    some_dict = {'H2':1, 'OH':2, 'H2O':3, 'H':4}
+    expected = [4, 2, 1, 3]
+    test_list = test_base_reaction.order_dictionaries(some_dict)
+    assert test_list == expected
 
-# def test_Reaction_set_concentrations(test_base_reaction):
-#     """Test setting reaction with valid concentrations"""
-#     expected = [4, 1, 2, 3]
-#     test_base_reaction.set_concentrations({'H2':1, 'OH':2, 'H2O':3, 'H':4})
-#     assert (test_base_reaction.concentrations == expected).all()
+def test_Reaction_set_concentrations(test_base_reaction):
+    """Test setting reaction with valid concentrations"""
+    expected = [4, 2, 1, 3]
+    test_base_reaction.set_concentrations({'H2':1, 'OH':2, 'H2O':3, 'H':4})
+    assert (test_base_reaction.concentrations == expected).all()
 
 def test_Reaction_set_neg_concentrations(test_base_reaction):
     """Test setting reaction with negative concentrations"""
     with pytest.raises(ValueError):
         test_base_reaction.set_concentrations({'H2':1, 'OH':2, 'H2O':3, 'H':-4})
 
+def test_Reaction_no_set_concentrations(test_base_reaction):
+    """Test setting reaction with negative concentrations"""
+    with pytest.raises(ValueError):
+        test_base_reaction.compute_progress_rate()
+
 def test_Reaction_compute_reaction_rate_coeff_constant(test_base_reaction):
     """Test reaction constant reaction rate coefficient"""
     k = test_base_reaction.compute_reaction_rate_coeff()
     assert k == 10
+
+def test_Reaction_compute_reaction_rate_coeff_invalid_constant():
+    """Test reaction constant reaction rate coefficient but invalid constant (non-positive)"""
+    test_rxn = Reaction(rxn_type="Elementary",
+                        is_reversible=False,
+                        rxn_equation="H2 + OH =] H2O + H",
+                        species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+                        rate_coeffs_components={'k': -10},
+                        reactant_stoich_coeffs={'H2' :1, 'OH':1},
+                        product_stoich_coeffs={'H2O' :1, 'H':1})
+    with pytest.raises(ValueError):
+        test_rxn.compute_reaction_rate_coeff()
 
 def test_Reaction_compute_reaction_rate_coeff_arrhenius(test_reaction_arrhenius):
     """Test reaction with arrhenius rate coefficient."""
@@ -113,6 +137,7 @@ def test_Reaction_compute_progress_rate():
     test = Reaction(rxn_type="Elementary",
                     is_reversible=False,
                     rxn_equation="A + B =] C",
+                    species_list=['A', 'B', 'C'],
                     rate_coeffs_components={'k': 10},
                     reactant_stoich_coeffs={'A' :2, 'B':1},
                     product_stoich_coeffs={'C': 1})
@@ -127,6 +152,7 @@ def test_Reaction_compute_reaction_rate(test_base_reaction):
     test = Reaction(rxn_type="Elementary",
                     is_reversible=False,
                     rxn_equation="A + B =] C",
+                    species_list=['A', 'B', 'C'],
                     rate_coeffs_components={'k': 10},
                     reactant_stoich_coeffs={'A' :2, 'B':1},
                     product_stoich_coeffs={'C': 1})
@@ -135,6 +161,34 @@ def test_Reaction_compute_reaction_rate(test_base_reaction):
     rxnrate = test.compute_reaction_rate()
     expected = -40.0
     assert rxnrate == expected
+
+def test_Reaction_compute_reaction_rate_neg_reactant_stoich_coeffs(test_base_reaction):
+    """Test compute_reaction_rate() for an elementary, irreversible reaction."""
+    test = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="A + B =] C",
+                    species_list=['A', 'B', 'C'],
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'A' :2, 'B':-1},
+                    product_stoich_coeffs={'C': 1})
+
+    test.set_concentrations({'A': 1, 'B':2, 'C':3})
+    with pytest.raises(ValueError):
+        rxnrate = test.compute_reaction_rate()
+    
+def test_Reaction_compute_reaction_rate_neg_product_stoich_coeffs(test_base_reaction):
+    """Test compute_reaction_rate() for an elementary, irreversible reaction."""
+    test = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="A + B =] C",
+                    species_list=['A', 'B', 'C'],
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'A' :2, 'B':1},
+                    product_stoich_coeffs={'C': -1})
+
+    test.set_concentrations({'A': 1, 'B':2, 'C':3})
+    with pytest.raises(ValueError):
+        rxnrate = test.compute_reaction_rate()
 
 def test_ReactionCoeff_constant():
     """Test when reaction rate coefficient is constant"""
