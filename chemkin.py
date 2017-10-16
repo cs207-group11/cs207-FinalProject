@@ -1,5 +1,9 @@
 
-"""Module for classes and functions in ChemKinLib."""
+"""Module for classes and functions in ChemKinLib.
+
+TODO: Set more specific/customized errors for debugging! (Not a million ValueErrors etc...)
+
+"""
 
 import numbers
 import numpy
@@ -150,20 +154,16 @@ class Reaction():
         list_of_interest = [element[1] for element in sorted_tuple_list]
         return list_of_interest
 
-    def compute_reaction_rate_coeff(self, T):
+    def compute_reaction_rate_coeff(self, T=None):
         """Computes reaction rate coefficients of reaction.
-
-        INPUTS
-        ======
-        T : int or float
-            Temperature (in Kelvin)
 
         RETURNS
         =======
         k : numeric type (or list of numeric type)
             Reaction rate coefficient
         """
-        k = ReactionCoeff(T=T, self.rate_coeffs_components)
+        k = ReactionCoeff(self.rate_coeffs_components,
+                          T=self.temperature).k
         return k
 
     def compute_reaction_rate(self):
@@ -202,7 +202,7 @@ class ReversibleReaction(Reaction):
 
 class ReactionCoeff():
     """Class for reaction rate coefficients, or values k."""
-    def __init__(self, T, k_parameters):
+    def __init__(self, k_parameters, T=None):
         """Initializes reaction rate coefficients.
 
         INPUTS
@@ -212,14 +212,11 @@ class ReactionCoeff():
         k_parameters : dictionary
             dictionary of parameters to compute k
         """
-        self.T = T
         self.k_parameters = k_parameters
+        self.T = T
+        self.k = self.get_coeff(self.k_parameters, self.T)
 
-    def __call__(self):
-        """Invokes self.get_coeff() when class called."""
-        self.get_coeff(T, k_parameters)
-
-    def get_coeff(self, T, k_parameters):
+    def get_coeff(self, k_parameters, T):
         """Computes reaction rate coefficients depending on passed parameters.
 
         INPUTS
@@ -236,16 +233,23 @@ class ReactionCoeff():
 
         NOTES
         =====
+        PRE:
+            - Raise ValueError if customized reaction rate coefficient depends on T
         POST:
             - Raises NotImplementedError if dictionary of k parameters is not recognized
-            - Options to alter values of R (to change units) but strongly discouraged!
+            - Options to alter values of R (to change units) but strongly discouraged
+            - Raises ValueError if valid T not inputed/set for Arrhenius and modified Arrhenius
         """
         # Constant
         if "k" in k_parameters:
             return self.const(k_parameters['k'])
         
         # Arrhenius
-        elif "A" in k_parameters and "E" in k_parameters and "b" not in k_parameters:
+        elif ("A" in k_parameters and "E" in k_parameters and
+              "b" not in k_parameters):
+            if T == None:
+                raise ValueError("Temperature has not been set in the reaction!")
+
             if "R" in k_parameters:
                 return self.arr(A=k_parameters['A'],
                                 E=k_parameters['E'],
@@ -257,7 +261,10 @@ class ReactionCoeff():
                                 T=T)
         
         # Modified Arrhenius
-        elif "A" in k_parameters and "E" in k_parameters  and "b" in k_parameters:
+        elif ("A" in k_parameters and "E" in k_parameters  and "b" in k_parameters):
+            if T == None:
+                raise ValueError("Temperature has not been set in the reaction!")
+
             if "R" in k_parameters:
                 return self.mod_arr(A=k_parameters['A'],
                                     E=k_parameters['E'],
@@ -270,6 +277,7 @@ class ReactionCoeff():
                                     b=k_parameters['b'],
                                     T=T)
 
+        # TODO: TEST THIS PART!
         else:
             raise NotImplementedError("This reaction rate coefficient has not been implemented!")
 
@@ -342,11 +350,11 @@ class ReactionCoeff():
         if (R <= 0):
             raise ValueError("Gas constant R must be positive!")
 
-        if not np.isclose(R, 8.314):
+        if not numpy.isclose(R, 8.314):
             warnings.warn("Please do not change the value of"
                           " R unless for converting units!")
 
-        k = A * np.exp(-E / R / T)
+        k = A * numpy.exp(-E / R / T)
         return k
 
     def mod_arr(self, A, b, E, T, R=8.314):
@@ -400,11 +408,11 @@ class ReactionCoeff():
         if (R <= 0):
             raise ValueError("Gas constant R must be positive!")
 
-        if not np.isclose(R, 8.314):
+        if not numpy.isclose(R, 8.314):
             warnings.warn("Please do not change the value of"
                           " R unless for converting units!")
 
-        k = A * T ** b * np.exp(-E / R / T)
+        k = A * T ** b * numpy.exp(-E / R / T)
         return k
 
 
