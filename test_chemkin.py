@@ -49,7 +49,6 @@ def test_Reaction_get_unique_species(test_base_reaction):
     """Test get_unique_species functio (used to get
     values of species_list)."""
     expected = ['H2', 'H', 'H2O', 'OH']
-    print test_base_reaction.species_list
     assert test_base_reaction.species_list == expected
 
 def test_Reaction_set_zero_temperature(test_base_reaction):
