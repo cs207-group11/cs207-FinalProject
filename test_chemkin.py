@@ -90,10 +90,27 @@ def test_Reaction_set_neg_concentrations(test_base_reaction):
     with pytest.raises(ValueError):
         test_base_reaction.set_concentrations({'H2':1, 'OH':2, 'H2O':3, 'H':-4})
 
+def test_Reaction_no_set_concentrations(test_base_reaction):
+    """Test setting reaction with negative concentrations"""
+    with pytest.raises(ValueError):
+        test_base_reaction.compute_progress_rate()
+
 def test_Reaction_compute_reaction_rate_coeff_constant(test_base_reaction):
     """Test reaction constant reaction rate coefficient"""
     k = test_base_reaction.compute_reaction_rate_coeff()
     assert k == 10
+
+def test_Reaction_compute_reaction_rate_coeff_invalid_constant():
+    """Test reaction constant reaction rate coefficient but invalid constant (non-positive)"""
+    test_rxn = Reaction(rxn_type="Elementary",
+                        is_reversible=False,
+                        rxn_equation="H2 + OH =] H2O + H",
+                        species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+                        rate_coeffs_components={'k': -10},
+                        reactant_stoich_coeffs={'H2' :1, 'OH':1},
+                        product_stoich_coeffs={'H2O' :1, 'H':1})
+    with pytest.raises(ValueError):
+        test_rxn.compute_reaction_rate_coeff()
 
 def test_Reaction_compute_reaction_rate_coeff_arrhenius(test_reaction_arrhenius):
     """Test reaction with arrhenius rate coefficient."""

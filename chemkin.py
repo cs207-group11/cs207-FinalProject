@@ -1,10 +1,5 @@
 
-"""Module for classes and functions in ChemKinLib.
-
-TODO: doctests!
-TODO post code review: Set more specific/customized errors for debugging! (Not a million ValueErrors etc...)
-
-"""
+"""Module for classes and functions in ChemKinLib."""
 
 import numbers
 import numpy
@@ -30,7 +25,7 @@ class Reaction():
         rxn_equation : str
             string representation of reaction equation
         species_list : list
-            list of chemical species from xml file (useful for ordering)
+            list of chemical species from original xml file (useful for ordering)
         rate_coeffs_components : dict
             dictionary of components (e.g. 'A', 'b', and/or 'E')
             to compute reaction rate coefficients
@@ -42,11 +37,11 @@ class Reaction():
         ATTRIBUTES:
         -----------
         temperature : int or float
-            temperature of reaction (in K)
+            temperature of reaction, in Kelvin
         concentrations : list
             concentrations of species involved in reaction
         rxn_rate_coeff : float
-            reaction rate coefficient (will be computed later)
+            reaction rate coefficient
         """
         self.rxn_type = rxn_type
         self.is_reversible = is_reversible
@@ -104,6 +99,7 @@ class Reaction():
     def get_unique_species(self):
         """Helper function to return unique species involved
         in the reaction.
+        
         RETURNS
         =======
         unique_species : list
@@ -189,8 +185,10 @@ class Reaction():
         """
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
         concen_array = self.concentrations
+        
         if len(concen_array) == 0:
             raise ValueError("You must set the concentrations first!")
+        
         k = self.compute_reaction_rate_coeff(T)
 
         # if reactant_stoich_coeffs.shape[0] != len(concen_array):
@@ -239,8 +237,7 @@ class Reaction():
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
         product_stoich_coeffs = numpy.array(self.order_dictionaries(self.product_stoich_coeffs))
         concen_array = self.concentrations
-        if len(concen_array) == 0:
-            raise ValueError("You must set the concentrations first!")
+
         k = self.compute_reaction_rate_coeff(T)
 
         omega_array = self.compute_progress_rate(T)
