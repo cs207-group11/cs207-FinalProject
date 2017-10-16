@@ -2,13 +2,13 @@
 """Base class for Reaction."""
 
 import numpy as np
+from Scratch_from_Shiyu import *
 
 
 class Reaction():
-    """Class for Reaction"""
+    """Base class for a reaction"""
     def __init__(self, rxn_type, is_reversible,
                  rxn_equation, rate_coeffs_components,
-                 species_list,
                  reactant_stoich_coeffs, product_stoich_coeffs):
         """Initializes Reaction
     
@@ -23,8 +23,6 @@ class Reaction():
         rate_coeffs_components : dict
             dictionary of components (e.g. 'A', 'b', and/or 'E')
             to compute reaction rate coefficients
-        species_list : list
-            list of chemical species (useful for ordering)
         reactant_stoich_coeffs : dict
             dictionary of integers for reactant stoichiometric coefficients
         product_stoich_coeffs : dict
@@ -38,12 +36,25 @@ class Reaction():
             list of concentrations of species involved in reaction
         rxn_rate_coeff : float
             reaction rate coefficient (will be computed later)
+        species_list : list
+            list of unique chemical species involved in reaction (useful for ordering)
         """
         self.rxn_type = rxn_type
         self.is_reversible = is_reversible
         self.rate_coeffs_components = rate_coeffs_components
         self.rxn_equation = rxn_equation
-        self.species_list = species_list
+
+        self.reactant_stoich_coeffs = reactant_stoich_coeffs
+        self.product_stoich_coeffs = product_stoich_coeffs
+
+        self.species_list = self.get_unique_species()
+
+        for specie in self.species_list:
+            if specie not in self.reactant_stoich_coeffs:
+                self.reactant_stoich_coeffs[specie] = 0
+            if specie not in self.product_stoich_coeffs:
+                self.product_stoich_coeffs[specie] = 0
+
         self.reactant_stoich_coeffs = reactant_stoich_coeffs
         self.product_stoich_coeffs = product_stoich_coeffs
 
@@ -70,10 +81,22 @@ class Reaction():
         n_species : int
             Number of unique species involved in the reaction
         """
+        n_species = len(self.get_unique_species())
+        return n_species
+
+    def get_unique_species(self):
+        """Helper function to return unique species involved
+        in the reaction.
+
+        RETURNS
+        =======
+        unique_species : list
+            List of unique species in reaction
+        """
         reactant_species = self.reactant_stoich_coeffs.keys()
         product_species = self.product_stoich_coeffs.keys()
-        n_species = len(list(set(reactant_species) | set(product_species)))
-        return n_species
+        unique_species = list(set(reactant_species) | set(product_species))
+        return unique_species
 
     def set_temperature(self, T):
         """Sets temperature of the reaction
@@ -115,100 +138,38 @@ class Reaction():
             dictionary to order 
         """
         index_map = {v: i for i, v in enumerate(self.species_list)}
-        sorted_tuple_list = sorted(self.species_list.items(), key=lambda pair: index_map[pair[0]])
+        sorted_tuple_list = sorted(dictionary.items(), key=lambda pair: index_map[pair[0]])
         list_of_interest = [element[1] for element in sorted_tuple_list]
         return list_of_interest
 
     def compute_reaction_coeff(self):
         rxn_rate_coeff = ReactionCoeff()
         self.rxn_rate_coeff = rxn_rate_coeff.get_coeff(
-                                self.rate_coeffs_components,
-                                self.temperature)
-
-    def compute_progress_rate(self):
-        """Computes progress rate for inputed reaction
-        INPUTS
-        ======= 
-        reactant_stoich_coeffs: numpy.ndarray
-            Stoichiometric coefficients of reactants
-        concen_array: numpy.ndarray
-            Concentrations of species
-        k : numeric type (or list of numeric type)
-            Reaction rate coefficient
-        RETURNS
-        ========
-        omega_array: numpy.ndarray
-            Array of progress rate(s) of reaction
-        NOTES
-        ======
-        PRE:
-             - reactant_stoich_coeffs, an array of positive ints of shape (i, j)
-                where i = number of species, j = number of reactions
-             - concen, an array of positive ints of shape (i, )
-             - k a numeric type or list (list if k of each reaction differs for multiple elementary reactions)
-        POST:
-             - raises ValueErrors if stoichiometric coefficients, concentrations,
-                or reaction rate constants non-positive
-             - returns array of floats
-        """
-        reactant_stoich_coeffs = self.order_dictionaries(self.reactant_stoich_coeffs)
-        concen_array = self.order_dictionaries(self.concentrations)
-        k = self.compute_reaction_coeff()
-
-        if (reactant_stoich_coeffs < 0).any():
-            raise ValueError("Stoichiometric coefficients must be positive!")
-
-        if (concen_array <= 0).any():
-            raise ValueError("Concentrations must be positive!")
-
-        if reactant_stoich_coeffs.shape[0] != len(concen_array):
-            raise ValueError("Number of species must stay consistent (lengths of concen_array and number of columns in coeff array)")
-
-        try:
-            n_rxns = reactant_stoich_coeffs.shape[1]
-        except IndexError:
-            n_rxns = 1
-
-        omega_array = np.zeros(n_rxns)
-
-        for j in range(n_rxns):
-            if n_rxns == 1:
-                concen_powered_j = concen_array**reactant_stoich_coeffs
-            else:
-                concen_powered_j = concen_array**reactant_stoich_coeffs[:, j]
-
-            if isinstance(k, float) or isinstance(k, int):
-                if k <= 0:
-                    raise ValueError("Reaction rate constants must be positive!")
-                
-                omega_j = k * np.prod(concen_powered_j)
-                omega_array[j] = omega_j
-
-            elif isinstance(k, list):
-                if len(k) != n_rxns:
-                    raise ValueError("If k is a list, its length must equal the number of elementary reactions!")
-
-                if (np.array(k) <= 0).any():
-                    raise ValueError("Reaction rate constants must be positive!")
-
-                omega_j = k[j] * np.prod(concen_powered_j)
-                omega_array[j] = omega_j
-
-        return omega_array
+                                self.temperature,
+                                self.rate_coeffs_components)
+        return self.rxn_rate_coeff
 
 
     def compute_reaction_rate(self):
-
         if (self.rxn_type == "Elementary" and
             not self.is_reversible):
 
             reactant_stoich_coeffs = self.order_dictionaries(self.reactant_stoich_coeffs)
             product_stoich_coeffs = self.order_dictionaries(self.product_stoich_coeffs)
+            concen_array = self.order_dictionaries(self.concentrations)
+            k = self.compute_reaction_coeff()
+            
+            reactant_stoich_coeffs = np.array(reactant_stoich_coeffs)
+            product_stoich_coeffs = np.array(product_stoich_coeffs)
+            concen_array = np.array(concen_array)
 
-            omega_array = self.compute_progress_rate()
-            nu_ij = product_stoich_coeffs - reactant_stoich_coeffs
-            rxn_rate_array = np.dot(nu_ij, omega_array)
-            return rxn_rate_array
+            rxn_rate_obj = IrreversibleReactionRate()
+            rxn_rate = rxn_rate_obj.reaction_rate(reactant_stoich_coeffs,
+                                                  product_stoich_coeffs,
+                                                  concen_array, k)
+
+
+            return rxn_rate
 
         else:
             raise NotImplementedError("Computing reaction rate for this type and reversibility "
@@ -219,7 +180,26 @@ class Reaction():
 
 
 
+if __name__ == "__main__":
 
+    test = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="A + B =] C",
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'A' :2, 'B':1, 'C':0},
+                    product_stoich_coeffs={'A' :0, 'B':0, 'C':1})
+
+    print(test)
+
+
+
+    test.set_temperature(10)
+    test.set_concentrations({'A':1, 'B': 2, 'C':3})
+
+    k = test.compute_reaction_coeff()
+
+    rxn_rate_test = test.compute_reaction_rate()
+    print(rxn_rate_test)
 
 
 
