@@ -74,9 +74,10 @@ def test_Reaction_set_valid_temperature(test_base_reaction):
 def test_Reaction_order_dictionaries(test_base_reaction):
     """Test ordering of reaction"""
     # order of species_list : ['H', 'O', 'OH', 'H2', 'H2O', 'O2']
+    some_dict = {'H2':1, 'OH':2, 'H2O':3, 'H':4}
     expected = [4, 2, 1, 3]
-    test_concen_list = test_base_reaction.order_dictionaries({'H2':1, 'OH':2, 'H2O':3, 'H':4})
-    assert test_concen_list == expected
+    test_list = test_base_reaction.order_dictionaries(some_dict)
+    assert test_list == expected
 
 def test_Reaction_set_concentrations(test_base_reaction):
     """Test setting reaction with valid concentrations"""
