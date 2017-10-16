@@ -22,7 +22,7 @@ def test_base_reaction():
 
 @pytest.fixture
 def test_reaction_arrhenius():
-    """Returns a reaction with Arrhenius reaction rate coefficient"""
+    """Returns a reaction with Arrhenius reaction rate coefficient."""
     return Reaction(rxn_type="Elementary",
                     is_reversible=False,
                     rxn_equation="H2 + OH =] H2O + H",
@@ -33,7 +33,7 @@ def test_reaction_arrhenius():
 
 @pytest.fixture
 def test_reaction_modified_arr():
-    """Returns a reaction with modified Arrhenius reaction rate coefficient"""
+    """Returns a reaction with modified Arrhenius reaction rate coefficient."""
     return Reaction(rxn_type="Elementary",
                     is_reversible=False,
                     rxn_equation="H2 + OH =] H2O + H",
@@ -57,7 +57,7 @@ def test_Reaction_get_unique_species(test_base_reaction):
     assert 'OH' in test_base_reaction.unique_species
 
 def test_Reaction_set_zero_temperature(test_base_reaction):
-    """Test setting reaction temperature to absolute 0..."""
+    """Test setting reaction temperature to absolute 0."""
     with pytest.raises(ValueError):
         test_base_reaction.set_temperature(0)
 
@@ -67,7 +67,7 @@ def test_Reaction_set_neg_temperature(test_base_reaction):
         test_base_reaction.set_temperature(-100)
 
 def test_Reaction_set_valid_temperature(test_base_reaction):
-    """Test setting reaction temperature to absolute 0..."""
+    """Test setting reaction temperature to absolute 0."""
     test_base_reaction.set_temperature(10)
     assert test_base_reaction.temperature == 10
 
