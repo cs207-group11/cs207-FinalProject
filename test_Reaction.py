@@ -4,7 +4,6 @@
 import pytest
 from Reaction import *
 
-
 @pytest.fixture
 def test_reaction_1():
     """Returns a valid reaction (from rxns.xml)"""

@@ -8,6 +8,7 @@ class Reaction():
     """Class for Reaction"""
     def __init__(self, rxn_type, is_reversible,
                  rxn_equation, rate_coeffs_components,
+                 species_list,
                  reactant_stoich_coeffs, product_stoich_coeffs):
         """Initializes Reaction
     
@@ -22,6 +23,8 @@ class Reaction():
         rate_coeffs_components : dict
             dictionary of components (e.g. 'A', 'b', and/or 'E')
             to compute reaction rate coefficients
+        species_list : list
+            list of chemical species (useful for ordering)
         reactant_stoich_coeffs : dict
             dictionary of integers for reactant stoichiometric coefficients
         product_stoich_coeffs : dict
@@ -40,6 +43,7 @@ class Reaction():
         self.is_reversible = is_reversible
         self.rate_coeffs_components = rate_coeffs_components
         self.rxn_equation = rxn_equation
+        self.species_list = species_list
         self.reactant_stoich_coeffs = reactant_stoich_coeffs
         self.product_stoich_coeffs = product_stoich_coeffs
 
@@ -100,9 +104,20 @@ class Reaction():
         # X >= 0, correct dimensions
         self.concentrations = X
 
-    def order_concentrations(self, concentration_dict):
-        # take in self.concen and order it (order in species in xml)
-        pass
+    def order_dictionaries(self, dictionary):
+        """Orders dictionaries (of concentrations, stoichiometric coefficients)
+        based on ordering from species list from xml file. This is to 
+        ensure a consistent ordering scheme.
+
+        INPUTS
+        ======
+        dictionary : dict
+            dictionary to order 
+        """
+        index_map = {v: i for i, v in enumerate(self.species_list)}
+        sorted_tuple_list = sorted(self.species_list.items(), key=lambda pair: index_map[pair[0]])
+        list_of_interest = [element[1] for element in sorted_tuple_list]
+        return list_of_interest
 
     def compute_reaction_coeff(self):
         rxn_rate_coeff = ReactionCoeff()
@@ -110,80 +125,76 @@ class Reaction():
                                 self.rate_coeffs_components,
                                 self.temperature)
 
-    # def compute_progress_rate(reactant_stoich_coeffs, concen_array, k):
-    #     """Computes progress rate for inputed reaction
-    #     INPUTS
-    #     ======= 
-    #     reactant_stoich_coeffs: numpy.ndarray
-    #         Stoichiometric coefficients of reactants
-    #     concen_array: numpy.ndarray
-    #         Concentrations of species
-    #     k : numeric type (or list of numeric type)
-    #         Reaction rate coefficient
-    #     RETURNS
-    #     ========
-    #     omega_array: numpy.ndarray
-    #         Array of progress rate(s) of reaction
-    #     NOTES
-    #     ======
-    #     PRE:
-    #          - reactant_stoich_coeffs, an array of positive ints of shape (i, j)
-    #             where i = number of species, j = number of reactions
-    #          - concen, an array of positive ints of shape (i, )
-    #          - k a numeric type or list (list if k of each reaction differs for multiple elementary reactions)
-    #     POST:
-    #          - raises ValueErrors if stoichiometric coefficients, concentrations,
-    #             or reaction rate constants non-positive
-    #          - returns array of floats
-    #     EXAMPLES
-    #     =========
-    #     >>> compute_progress_rate(np.array([2., 1., 0.]), np.array([1., 2., 3.]), 10)
-    #     array([ 20.])
-    #     >>> compute_progress_rate(np.array([[1.0, 2.0], [2.0, 0.0], [0.0, 2.0]]), np.array([1., 2., 1.]), 10)
-    #     array([ 40.,  10.])
-    #     >>> compute_progress_rate(np.array([[1.0, 2.0], [2.0, 0.0], [0.0, 2.0]]), np.array([1., 2., 1.]), [50., 30.])
-    #     array([ 200.,   30.])
-    #     """
-    #     if (reactant_stoich_coeffs < 0).any():
-    #         raise ValueError("Stoichiometric coefficients must be positive!")
+    def compute_progress_rate(self):
+        """Computes progress rate for inputed reaction
+        INPUTS
+        ======= 
+        reactant_stoich_coeffs: numpy.ndarray
+            Stoichiometric coefficients of reactants
+        concen_array: numpy.ndarray
+            Concentrations of species
+        k : numeric type (or list of numeric type)
+            Reaction rate coefficient
+        RETURNS
+        ========
+        omega_array: numpy.ndarray
+            Array of progress rate(s) of reaction
+        NOTES
+        ======
+        PRE:
+             - reactant_stoich_coeffs, an array of positive ints of shape (i, j)
+                where i = number of species, j = number of reactions
+             - concen, an array of positive ints of shape (i, )
+             - k a numeric type or list (list if k of each reaction differs for multiple elementary reactions)
+        POST:
+             - raises ValueErrors if stoichiometric coefficients, concentrations,
+                or reaction rate constants non-positive
+             - returns array of floats
+        """
+        reactant_stoich_coeffs = self.order_dictionaries(self.reactant_stoich_coeffs)
+        concen_array = self.order_dictionaries(self.concentrations)
+        k = self.compute_reaction_coeff()
 
-    #     if (concen_array <= 0).any():
-    #         raise ValueError("Concentrations must be positive!")
+        if (reactant_stoich_coeffs < 0).any():
+            raise ValueError("Stoichiometric coefficients must be positive!")
 
-    #     if reactant_stoich_coeffs.shape[0] != len(concen_array):
-    #         raise ValueError("Number of species must stay consistent (lengths of concen_array and number of columns in coeff array)")
+        if (concen_array <= 0).any():
+            raise ValueError("Concentrations must be positive!")
 
-    #     try:
-    #         n_rxns = reactant_stoich_coeffs.shape[1]
-    #     except IndexError:
-    #         n_rxns = 1
+        if reactant_stoich_coeffs.shape[0] != len(concen_array):
+            raise ValueError("Number of species must stay consistent (lengths of concen_array and number of columns in coeff array)")
 
-    #     omega_array = np.zeros(n_rxns)
+        try:
+            n_rxns = reactant_stoich_coeffs.shape[1]
+        except IndexError:
+            n_rxns = 1
 
-    #     for j in range(n_rxns):
-    #         if n_rxns == 1:
-    #             concen_powered_j = concen_array**reactant_stoich_coeffs
-    #         else:
-    #             concen_powered_j = concen_array**reactant_stoich_coeffs[:, j]
+        omega_array = np.zeros(n_rxns)
 
-    #         if isinstance(k, float) or isinstance(k, int):
-    #             if k <= 0:
-    #                 raise ValueError("Reaction rate constants must be positive!")
+        for j in range(n_rxns):
+            if n_rxns == 1:
+                concen_powered_j = concen_array**reactant_stoich_coeffs
+            else:
+                concen_powered_j = concen_array**reactant_stoich_coeffs[:, j]
+
+            if isinstance(k, float) or isinstance(k, int):
+                if k <= 0:
+                    raise ValueError("Reaction rate constants must be positive!")
                 
-    #             omega_j = k * np.prod(concen_powered_j)
-    #             omega_array[j] = omega_j
+                omega_j = k * np.prod(concen_powered_j)
+                omega_array[j] = omega_j
 
-    #         elif isinstance(k, list):
-    #             if len(k) != n_rxns:
-    #                 raise ValueError("If k is a list, its length must equal the number of elementary reactions!")
+            elif isinstance(k, list):
+                if len(k) != n_rxns:
+                    raise ValueError("If k is a list, its length must equal the number of elementary reactions!")
 
-    #             if (np.array(k) <= 0).any():
-    #                 raise ValueError("Reaction rate constants must be positive!")
+                if (np.array(k) <= 0).any():
+                    raise ValueError("Reaction rate constants must be positive!")
 
-    #             omega_j = k[j] * np.prod(concen_powered_j)
-    #             omega_array[j] = omega_j
+                omega_j = k[j] * np.prod(concen_powered_j)
+                omega_array[j] = omega_j
 
-    #     return omega_array
+        return omega_array
 
 
     def compute_reaction_rate(self):
@@ -191,15 +202,13 @@ class Reaction():
         if (self.rxn_type == "Elementary" and
             not self.is_reversible):
 
-            # omega_array = self.compute_progress_rate(reactant_stoich_coeffs, concen_array, k)
-            # nu_ij = product_stoich_coeffs - reactant_stoich_coeffs
+            reactant_stoich_coeffs = self.order_dictionaries(self.reactant_stoich_coeffs)
+            product_stoich_coeffs = self.order_dictionaries(self.product_stoich_coeffs)
+
+            omega_array = self.compute_progress_rate()
+            nu_ij = product_stoich_coeffs - reactant_stoich_coeffs
             rxn_rate_array = np.dot(nu_ij, omega_array)
             return rxn_rate_array
-            
-           
-            
-            pass
-            # TODO!
 
         else:
             raise NotImplementedError("Computing reaction rate for this type and reversibility "
