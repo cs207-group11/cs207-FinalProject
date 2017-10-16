@@ -2,7 +2,7 @@
 """Module for classes and functions in ChemKinLib.
 
 TODO: doctests!
-TODO: Set more specific/customized errors for debugging! (Not a million ValueErrors etc...)
+TODO post code review: Set more specific/customized errors for debugging! (Not a million ValueErrors etc...)
 
 """
 
@@ -16,7 +16,8 @@ import warnings
 
 class Reaction():
     """Base class for a reaction"""
-    def __init__(self, rxn_type, is_reversible, rxn_equation, rate_coeffs_components,
+    def __init__(self, rxn_type, is_reversible, rxn_equation, species_list,
+                 rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
         """Initializes Reaction
     
@@ -28,6 +29,8 @@ class Reaction():
             True if reaction is reversible
         rxn_equation : str
             string representation of reaction equation
+        species_list : list
+            list of chemical species from xml file (useful for ordering)
         rate_coeffs_components : dict
             dictionary of components (e.g. 'A', 'b', and/or 'E')
             to compute reaction rate coefficients
@@ -44,8 +47,6 @@ class Reaction():
             concentrations of species involved in reaction
         rxn_rate_coeff : float
             reaction rate coefficient (will be computed later)
-        species_list : list
-            list of unique chemical species involved in reaction (useful for ordering)
         """
         self.rxn_type = rxn_type
         self.is_reversible = is_reversible
@@ -55,17 +56,18 @@ class Reaction():
         self.reactant_stoich_coeffs = reactant_stoich_coeffs
         self.product_stoich_coeffs = product_stoich_coeffs
 
-        self.species_list = self.get_unique_species()
+        self.unique_species = self.get_unique_species()
+        self.species_list = species_list
 
-        # Pad the nonactive species with coefficient 0
+        # Pad the "nonactive" (non-participating) species with coefficient 0
         for specie in self.species_list:
             if specie not in self.reactant_stoich_coeffs:
                 self.reactant_stoich_coeffs[specie] = 0
             if specie not in self.product_stoich_coeffs:
                 self.product_stoich_coeffs[specie] = 0
 
-        if (len(self.reactant_stoich_coeffs) != len(self.product_stoich_coeffs)):
-            raise ValueError("Dimension mismatch for reactant and product stoichiometric coefficients!")
+        # if (len(self.reactant_stoich_coeffs) != len(self.product_stoich_coeffs)):
+        #     raise ValueError("Dimension mismatch for reactant and product stoichiometric coefficients!")
 
         # if not all(i > 0 for i in self.reactant_stoich_coeffs.values()):
         #     raise ValueError("Stoichiometric coefficients must be positive!")
@@ -96,13 +98,12 @@ class Reaction():
         n_species : int
             Number of unique species involved in the reaction
         """
-        n_species = len(self.get_unique_species())
+        n_species = len(self.unique_species)
         return n_species
 
     def get_unique_species(self):
         """Helper function to return unique species involved
         in the reaction.
-
         RETURNS
         =======
         unique_species : list
