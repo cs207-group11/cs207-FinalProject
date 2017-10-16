@@ -1,6 +1,7 @@
 
 """Module for classes and functions in ChemKinLib.
 
+TODO: doctests!
 TODO: Set more specific/customized errors for debugging! (Not a million ValueErrors etc...)
 
 """
@@ -63,6 +64,15 @@ class Reaction():
             if specie not in self.product_stoich_coeffs:
                 self.product_stoich_coeffs[specie] = 0
 
+        if (len(self.reactant_stoich_coeffs) != len(self.product_stoich_coeffs)):
+            raise ValueError("Dimension mismatch for reactant and product stoichiometric coefficients!")
+
+        # if not all(i > 0 for i in self.reactant_stoich_coeffs.values()):
+        #     raise ValueError("Stoichiometric coefficients must be positive!")
+        
+        # if not all(i > 0 for i in self.product_stoich_coeffs.values()):
+        #     raise ValueError("Stoichiometric coefficients must be positive!")
+         
         self.temperature = None
         self.concentrations = []
         self.rxn_rate_coeff = None
@@ -119,6 +129,7 @@ class Reaction():
         """
         if T <= 0:
             raise ValueError("Temperature has to be a positive value!")
+
         self.temperature = T
 
     def set_concentrations(self, X):
@@ -132,7 +143,8 @@ class Reaction():
         ordered_concentrations = self.order_dictionaries(X)
         if (numpy.array(ordered_concentrations) < 0).any():
             raise ValueError("You cannot have negative concentrations!")
-        self.concentrations = ordered_concentrations
+        
+        self.concentrations = numpy.array(ordered_concentrations)
 
     def order_dictionaries(self, dictionary):
         """Helper function to order dictionaries (of concentrations,
@@ -166,7 +178,55 @@ class Reaction():
                           T=self.temperature).k
         return k
 
-    def compute_reaction_rate(self):
+    def compute_progress_rate(self, T=None):
+        """Computes progress rates of reaction.
+
+        RETURNS
+        =======
+        omega_array : numpy.ndarray
+            Array of progress rates of reaction
+        """
+        reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
+        concen_array = self.concentrations
+        if len(concen_array) == 0:
+            raise ValueError("You must set the concentrations first!")
+        k = self.compute_reaction_rate_coeff(T)
+
+        # if reactant_stoich_coeffs.shape[0] != len(concen_array):
+        #     raise ValueError("Number of species must stay consistent (lengths of concen_array and number of columns in coeff array)")
+
+        try:
+            n_rxns = reactant_stoich_coeffs.shape[1]
+        except IndexError:
+            n_rxns = 1
+
+        omega_array = numpy.zeros(n_rxns)
+
+        for j in range(n_rxns):
+            if n_rxns == 1:
+                concen_powered_j = concen_array**reactant_stoich_coeffs
+            else:
+                concen_powered_j = concen_array**reactant_stoich_coeffs[:, j]
+
+            if isinstance(k, float) or isinstance(k, int):
+                if k <= 0:
+                    raise ValueError("Reaction rate constants must be positive!")
+                
+                omega_j = k * numpy.prod(concen_powered_j)
+                omega_array[j] = omega_j
+
+            elif isinstance(k, list):
+                if len(k) != n_rxns:
+                    raise ValueError("If k is a list, its length must equal the number of elementary reactions!")
+
+                if (numpy.array(k) <= 0).any():
+                    raise ValueError("Reaction rate constants must be positive!")
+
+                omega_j = k[j] * numpy.prod(concen_powered_j)
+                omega_array[j] = omega_j
+        return omega_array
+
+    def compute_reaction_rate(self, T=None):
         """Computes reaction rates of reaction.
 
         RETURNS
@@ -174,7 +234,23 @@ class Reaction():
         rxn_rate_array: numpy.ndarray
             Array of reaction rates of reaction
         """
-        raise NotImplementedError
+
+        reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
+        product_stoich_coeffs = numpy.array(self.order_dictionaries(self.product_stoich_coeffs))
+        concen_array = self.concentrations
+        if len(concen_array) == 0:
+            raise ValueError("You must set the concentrations first!")
+        k = self.compute_reaction_rate_coeff(T)
+
+        omega_array = self.compute_progress_rate(T)
+
+        if omega_array.shape == (1, ):
+            omega_array = numpy.ones(len(concen_array)) * omega_array[0]
+
+        nu_ij = product_stoich_coeffs - reactant_stoich_coeffs
+
+        rxn_rate_array = numpy.dot(nu_ij, omega_array)
+        return rxn_rate_array
 
 
 class IrreversibleReaction(Reaction):

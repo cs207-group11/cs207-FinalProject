@@ -77,7 +77,7 @@ def test_Reaction_set_concentrations(test_base_reaction):
     """Test setting reaction with valid concentrations"""
     expected = [1, 4, 3, 2]
     test_base_reaction.set_concentrations({'H2':1, 'OH':2, 'H2O':3, 'H':4})
-    assert test_base_reaction.concentrations == expected
+    assert (test_base_reaction.concentrations == expected).all()
 
 def test_Reaction_set_neg_concentrations(test_base_reaction):
     """Test setting reaction with negative concentrations"""
@@ -109,10 +109,33 @@ def test_Reaction_compute_reaction_rate_coeff_mod_arrhenius(test_reaction_modifi
         k = test_reaction_modified_arr.compute_reaction_rate_coeff()
     assert numpy.isclose(k, 9.4980561852498244)
 
+def test_Reaction_compute_progress_rate():
+    """Test compute_progress_rate() for an elementary, irreversible reaction."""
+    test = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="A + B =] C",
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'A' :2, 'B':1},
+                    product_stoich_coeffs={'C': 1})
+
+    test.set_concentrations({'A': 1, 'B':2, 'C':3})
+    w = test.compute_progress_rate()
+    expected = numpy.array([ 20.])
+    assert w == expected
+
 def test_Reaction_compute_reaction_rate(test_base_reaction):
-    """Test calling compute_reaction_rate"""
-    with pytest.raises(NotImplementedError):
-        test_base_reaction.compute_reaction_rate()
+    """Test compute_reaction_rate() for an elementary, irreversible reaction."""
+    test = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="A + B =] C",
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'A' :2, 'B':1},
+                    product_stoich_coeffs={'C': 1})
+
+    test.set_concentrations({'A': 1, 'B':2, 'C':3})
+    rxnrate = test.compute_reaction_rate()
+    expected = -40.0
+    assert rxnrate == expected
 
 def test_ReactionCoeff_constant():
     """Test when reaction rate coefficient is constant"""
