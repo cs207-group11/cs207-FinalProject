@@ -374,11 +374,6 @@ class ReactionCoeff():
         =====
         POST:
             - Raises ValueError if k is non-positive!
-
-        EXAMPLES
-        =========
-        >>> rc = ReactionCoeff(T=100, {'k': 10})
-        10
         """
         if k <= 0:
             raise ValueError("Reaction rate must be positive!")
@@ -411,11 +406,6 @@ class ReactionCoeff():
         POST:
             - Raises ValueError if A, T, or R is non-positive
             - Raises Warning if user changes value of R
-
-        EXAMPLES
-        =========
-        >>> rc = ReactionCoeff(T=100, {'A': 10**7, 'E': 10**3})
-        3003549.0889639617
         """
         if (A <= 0):
             raise ValueError("Arrhenius prefactor A must be positive!")
@@ -464,12 +454,6 @@ class ReactionCoeff():
             - Raises ValueError if A, T, or R is non-positive
             - Raises TypeError if b is not real
             - Raises Warning if user changes value of R
-
-        EXAMPLES
-        =========
-        >>> rc = ReactionCoeff()
-        >>> rc.mod_arr(10**7,0.5,10**3,10**2)
-        30035490.889639616
         """
 
         if (A <= 0):
