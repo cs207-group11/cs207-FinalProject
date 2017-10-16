@@ -136,10 +136,10 @@ def test_ReactionCoeff_constant_with_T():
 
 def test_ReactionCoeff_arrhenius():
     """Test when reaction rate coefficient is Arrhenius"""
-    k_parameters = {'A': 10, 'E':100}
-    T = 10
+    k_parameters = {'A': 10**7, 'E':10**3}
+    T = 10**2
     k_test = ReactionCoeff(k_parameters, T).k
-    assert numpy.isclose(k_test, 3.0035490889639616)
+    assert numpy.isclose(k_test, 3003549.08896)
 
 def test_ReactionCoeff_arrhenius_invalid_A():
     """Test when reaction rate coefficient is Arrhenius but A is invalid (non-positive)"""
@@ -177,10 +177,10 @@ def test_ReactionCoeff_arrhenius_changing_R():
 
 def test_ReactionCoeff_mod_arrhenius():
     """Test when reaction rate coefficient is modified Arrhenius"""
-    k_parameters = {'A': 10, 'E':100, 'b': 0.5}
-    T = 10
+    k_parameters = {'A': 10**7, 'E':10**3, 'b': 0.5}
+    T = 10**2
     k_test = ReactionCoeff(k_parameters, T).k
-    assert numpy.isclose(k_test, 9.4980561852498244)
+    assert numpy.isclose(k_test, 30035490.8896)
 
 def test_ReactionCoeff_mod_arrhenius_invalid_A():
     """Test when reaction rate coefficient is modified
