@@ -162,6 +162,34 @@ def test_Reaction_compute_reaction_rate(test_base_reaction):
     expected = -40.0
     assert rxnrate == expected
 
+def test_Reaction_compute_reaction_rate_neg_reactant_stoich_coeffs(test_base_reaction):
+    """Test compute_reaction_rate() for an elementary, irreversible reaction."""
+    test = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="A + B =] C",
+                    species_list=['A', 'B', 'C'],
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'A' :2, 'B':-1},
+                    product_stoich_coeffs={'C': 1})
+
+    test.set_concentrations({'A': 1, 'B':2, 'C':3})
+    with pytest.raises(ValueError):
+        rxnrate = test.compute_reaction_rate()
+    
+def test_Reaction_compute_reaction_rate_neg_product_stoich_coeffs(test_base_reaction):
+    """Test compute_reaction_rate() for an elementary, irreversible reaction."""
+    test = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="A + B =] C",
+                    species_list=['A', 'B', 'C'],
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'A' :2, 'B':1},
+                    product_stoich_coeffs={'C': -1})
+
+    test.set_concentrations({'A': 1, 'B':2, 'C':3})
+    with pytest.raises(ValueError):
+        rxnrate = test.compute_reaction_rate()
+
 def test_ReactionCoeff_constant():
     """Test when reaction rate coefficient is constant"""
     k_parameters = {'k': 10}

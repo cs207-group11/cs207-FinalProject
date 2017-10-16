@@ -60,15 +60,6 @@ class Reaction():
                 self.reactant_stoich_coeffs[specie] = 0
             if specie not in self.product_stoich_coeffs:
                 self.product_stoich_coeffs[specie] = 0
-
-        # if (len(self.reactant_stoich_coeffs) != len(self.product_stoich_coeffs)):
-        #     raise ValueError("Dimension mismatch for reactant and product stoichiometric coefficients!")
-
-        # if not all(i > 0 for i in self.reactant_stoich_coeffs.values()):
-        #     raise ValueError("Stoichiometric coefficients must be positive!")
-        
-        # if not all(i > 0 for i in self.product_stoich_coeffs.values()):
-        #     raise ValueError("Stoichiometric coefficients must be positive!")
          
         self.temperature = None
         self.concentrations = []
@@ -237,6 +228,12 @@ class Reaction():
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
         product_stoich_coeffs = numpy.array(self.order_dictionaries(self.product_stoich_coeffs))
         concen_array = self.concentrations
+
+        if (reactant_stoich_coeffs < 0).any():
+            raise ValueError("Reactant stoichiometric coefficients must be positive!")
+        
+        if (product_stoich_coeffs < 0).any():
+            raise ValueError("Product stoichiometric coefficients must be positive!")
 
         k = self.compute_reaction_rate_coeff(T)
 
