@@ -239,7 +239,7 @@ class Reaction():
 
         omega_array = self.compute_progress_rate(T)
 
-        if omega_array.shape == (1, ):
+        if omega_array.shape == (1, ) :
             omega_array = numpy.ones(len(concen_array)) * omega_array[0]
 
         nu_ij = product_stoich_coeffs - reactant_stoich_coeffs
@@ -256,7 +256,7 @@ class IrreversibleReaction(Reaction):
                  reactant_stoich_coeffs, product_stoich_coeffs)
 
     def compute_reaction_rate(self):
-        raise NotImplementedError
+        raise NotImplementedError("Coming soon...")
 
 
 class ReversibleReaction(Reaction):
@@ -268,7 +268,7 @@ class ReversibleReaction(Reaction):
                  reactant_stoich_coeffs, product_stoich_coeffs)
 
     def compute_reaction_rate(self):
-        raise NotImplementedError
+        raise NotImplementedError("Coming soon...")
 
 
 class ReactionCoeff():
