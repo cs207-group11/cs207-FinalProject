@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 import os.path
-import Reaction
+import chemkin
 
 class ReactionParser():
     """Class for parsing input xml file describing reactions"""
