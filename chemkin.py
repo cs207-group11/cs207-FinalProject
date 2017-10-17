@@ -256,7 +256,7 @@ class IrreversibleReaction(Reaction):
                  reactant_stoich_coeffs, product_stoich_coeffs)
 
     def compute_reaction_rate(self):
-        raise NotImplementedError("Coming soon.")
+        raise NotImplementedError("Coming soon...")
 
 
 class ReversibleReaction(Reaction):
@@ -268,7 +268,7 @@ class ReversibleReaction(Reaction):
                  reactant_stoich_coeffs, product_stoich_coeffs)
 
     def compute_reaction_rate(self):
-        raise NotImplementedError("Coming soon.")
+        raise NotImplementedError("Coming soon...")
 
 
 class ReactionCoeff():
