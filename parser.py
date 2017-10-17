@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import os.path
 import Reaction
 
 class ReactionParser():
@@ -13,16 +14,19 @@ class ReactionParser():
         -----------
         reaction_list : list
             list of Reaction (or Reaction-inherited) objects
-        NOTES:
-        ------
-        POST:
-            - Raises IOError if inputed xml file not found
         """
-        try:
+        if os.path.isfile(xml_filename):
             self.xml_filename = xml_filename
-        except IOError as err:
+        else:
             raise IOError("Reaction (xml) file not found!")
-
+                      
+#         NOTES:
+#         ------
+#         POST:
+#             - Raises IOError if inputed xml file not found
+#                 except IOError as err:
+#             raise IOError("Reaction (xml) file not found!")
+        
         self.reaction_list = []
 
     def __call__(self):
@@ -32,7 +36,6 @@ class ReactionParser():
         self : contains xml file name: self.xml_filename 
                 which is our target file to parser
         """
-        
         tree = ET.parse(self.xml_filename)
         rxns = tree.getroot()
         # species
@@ -58,15 +61,51 @@ class ReactionParser():
                 rxn_equation = reaction.find('equation').text
                 # reaction_coef
                 for coef in reaction.findall('rateCoeff'):
-                    for arr in coef.findall('Arrhenius'):
-                        A = float(arr.find('A').text)
-                        b = float(arr.find('b').text)
-                        E = float(arr.find('E').text)
-                rate_coeffs_components = {
-                    "A":A,
-                    "b":b,
-                    "E":E
-                }
+                    # Arrhenius
+                    if coef.find('Arrhenius') is not None:
+                        for arr in coef.findall('Arrhenius'):
+                            if arr.find('A') is None or arr.find('A').text is None:
+                                raise ValueError("Didn't provide coefficient A for modified Arrhenius ")
+                            else:
+                                A = float(arr.find('A').text)
+                            if arr.find('E') is None or arr.find('E').text is None:
+                                raise ValueError("Didn't provide coefficient E for modified Arrhenius ")
+                            else:
+                                E = float(arr.find('E').text)
+                        rate_coeffs_components = {
+                            "A":A,
+                            "E":E
+                        }
+                    # modified Arrhenius
+                    if coef.find('modifiedArrhenius') is not None:
+                        for arr in coef.findall('modifiedArrhenius'):
+                            if arr.find('A') is None or arr.find('A').text is None:
+                                raise ValueError("Didn't provide coefficient A for modified Arrhenius ")
+                            else:
+                                A = float(arr.find('A').text)
+                            if arr.find('b') is None or arr.find('b').text is None:
+                                raise ValueError("Didn't provide coefficient b for modified Arrhenius ")
+                            else:
+                                b = float(arr.find('b').text)
+                            if arr.find('E') is None or arr.find('E').text is None:
+                                raise ValueError("Didn't provide coefficient E for modified Arrhenius ")
+                            else:
+                                E = float(arr.find('E').text)
+                        rate_coeffs_components = {
+                            "A":A,
+                            "b":b,
+                            "E":E
+                        }
+                    # constant
+                    if coef.find('Constant') is not None:
+                        for arr in coef.findall('Constant'):
+                            if arr.find('k') is None or arr.find('k').text is None:
+                                raise ValueError("Didn't provide coefficient k for modified Arrhenius ")
+                            else:
+                                k = float(arr.find('k').text)
+                        rate_coeffs_components = {
+                            "k":k
+                        }
                 # reactant_stoich_coeffs
                 reactant_stoich_coeffs = {}
                 for reactant in reaction.find('reactants').text.split():
