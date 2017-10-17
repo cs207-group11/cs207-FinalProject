@@ -311,12 +311,13 @@ class ReactionCoeff():
             - Options to alter values of R (to change units) but strongly discouraged
             - Raises ValueError if valid T not inputed/set for Arrhenius and modified Arrhenius
         """
-        # Constant
+        #check if the key-arguments are valid
         keys = set(k_parameters.keys())
         valid_keys = set(['A', 'E', 'b', "R", "k"])
         if not(keys <= valid_keys):
             raise ValueError("Invalid key in the input!")
 
+        # Constant
         if "k" in k_parameters:
             return self.const(k_parameters['k'])
         
