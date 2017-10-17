@@ -312,6 +312,11 @@ class ReactionCoeff():
             - Raises ValueError if valid T not inputed/set for Arrhenius and modified Arrhenius
         """
         # Constant
+        keys = set(k_parameters.keys())
+        valid_keys = set(['A', 'E', 'b', "R", "k"])
+        if not(keys <= valid_keys):
+            raise ValueError("Invalid key in the input!")
+
         if "k" in k_parameters:
             return self.const(k_parameters['k'])
         
