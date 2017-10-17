@@ -118,7 +118,7 @@ class ReactionParser():
                     key = product.split(":")[0]
                     value = product.split(":")[1]
                     product_stoich_coeffs[key] = value
-                rxn = Reaction(rxn_type, is_reversible,
+                rxn = chemkin.Reaction(rxn_type, is_reversible,
                  rxn_equation, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs)
                 self.reaction_list.append(rxn)
