@@ -1,6 +1,5 @@
 """Test module for chemkin."""
 
-
 import numpy
 import pytest
 import warnings
