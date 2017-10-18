@@ -202,7 +202,7 @@ def test_ReactionCoeff_constant_with_others():
     k_parameters = {'k': 10,'A': 10**7, "q":8}
     with pytest.raises(ValueError) as excinfo:
         k_test = ReactionCoeff(k_parameters).k
-        assert excinfo.value.message == "Invalid key in the input!"
+        #assert excinfo.value.message == "Invalid key in the input!"
 
 def test_ReactionCoeff_invalid_constant():
     """Test when reaction rate coefficient is constant but invalid (non-positive)"""
