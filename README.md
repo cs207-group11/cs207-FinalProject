@@ -3,7 +3,7 @@
 
 ### Group #11 Members: Karan R. Motwani, Shiyu Huang, Hannah Sim and Haixing Yin.
 
-`ChemKinLib` stands for Chemical Kinetics Library.
+ChemKinLib stands for Chemical Kinetics Library.
 
 ChemKinLib consists of algorithms, functions, and documentation to allow the user to interpret the kinetics of a chemical reaction by returning the reaction rate for a system of chemical reaction(s). The library currently supports:
 
@@ -36,7 +36,7 @@ The documentation for the library can be found [here](https://github.com/cs207-g
 [Note : Anaconda's standard Python platform should suffice the dependency requirements.]
 
 ## License
-ADD LICENSE!
+See [LICENSE](https://github.com/cs207-group11/cs207-FinalProject/blob/master/LICENSE) file distributed with ChemKinLib for more information.
 
 ## Contributing
 Contributions are welcome (post project evaluation!). If you wish to contribute, please take a few moment to review the [branching model](http://nvie.com/posts/a-successful-git-branching-model/) this repository utilizes.
