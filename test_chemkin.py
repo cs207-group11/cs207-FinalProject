@@ -323,7 +323,7 @@ def test_ReactionParser_species():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
-    assert parser.species == ['H', 'O', 'OH', 'H2', 'H2O', 'O2']
+    assert parser.species == {'H': None, 'O':None, 'OH':None, 'H2':None, 'H2O':None, 'O2':None}
 
 def test_ReactionParser_type():
     xml_filename = "rxns.xml"
