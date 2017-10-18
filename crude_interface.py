@@ -10,7 +10,7 @@ parser()
 rxn1 = parser.reaction_list[0]
 
 
-print rxn1
+print(rxn1)
 # print rxn1.species_list
 # print rxn1.reactant_stoich_coeffs
 # print rxn1.product_stoich_coeffs
