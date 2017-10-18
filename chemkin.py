@@ -129,13 +129,17 @@ class ReactionParser():
                 reactant_stoich_coeffs = {}
                 for reactant in reaction.find('reactants').text.split():
                     key = reactant.split(":")[0]
+
                     value = reactant.split(":")[1]
                     reactant_stoich_coeffs[key] = int(value)
+
 
                 # product_stoich_coeffs
                 product_stoich_coeffs = {}
                 for product in reaction.find('products').text.split():
                     key = product.split(":")[0]
+
+
                     value = product.split(":")[1]
                     product_stoich_coeffs[key] = int(value)
 
@@ -147,7 +151,6 @@ class ReactionParser():
                 
                 else:
                     raise NotImplementedError("This type of reaction has not been implemented yet!")
-
 
 class Reaction():
     """Base class for an elementary (irreversible) reaction"""
