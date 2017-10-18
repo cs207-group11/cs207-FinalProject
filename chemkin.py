@@ -116,15 +116,15 @@ class ReactionParser():
                 reactant_stoich_coeffs = {}
                 for reactant in reaction.find('reactants').text.split():
                     key = reactant.split(":")[0]
-                    value = reactant.split(":")[1]
+                    value = int(reactant.split(":")[1])
                     reactant_stoich_coeffs[key] = value
                 # product_stoich_coeffs
                 product_stoich_coeffs = {}
                 for product in reaction.find('products').text.split():
                     key = product.split(":")[0]
-                    value = product.split(":")[1]
+                    value = int(product.split(":")[1])
                     product_stoich_coeffs[key] = value
-                rxn = chemkin.Reaction(rxn_type, is_reversible, rxn_equation, 
+                rxn = Reaction(rxn_type, is_reversible, rxn_equation, 
                                        self.species, rate_coeffs_components,
                                        reactant_stoich_coeffs, product_stoich_coeffs)
                 self.reaction_list.append(rxn)

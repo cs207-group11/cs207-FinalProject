@@ -324,19 +324,43 @@ def test_ReactionParser_species():
     parser = ReactionParser(xml_filename)
     parser()
     assert parser.species == ['H', 'O', 'OH', 'H2', 'H2O', 'O2']
-    
+
 def test_ReactionParser_type():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
     assert parser.reaction_list[0].rxn_type == 'Elementary'
     
+def test_ReactionParser_is_reversible():
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert parser.reaction_list[0].is_reversible == False
+    
 def test_ReactionParser_rate_coeffs_components():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
     assert parser.reaction_list[0].rate_coeffs_components == {'A': 35200000000.0, 'E': 71400.0}
+
+def test_ReactionParser_rxn_equation():
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert parser.reaction_list[0].rxn_equation == 'H + O2 =] OH + O'
     
+def test_ReactionParser_reactant_stoich_coeffs():
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert parser.reaction_list[0].reactant_stoich_coeffs == {'H': 1, 'H2': 0, 'H2O': 0, 'O': 0, 'O2': 1, 'OH': 0}
+
+def test_ReactionParser_product_stoich_coeffs():
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert parser.reaction_list[0].product_stoich_coeffs == {'H': 0, 'H2': 0, 'H2O': 0, 'O': 1, 'O2': 0, 'OH': 1}
+
 def test_arr_A():
     try:
         xml_filename = "A_arr.xml"
@@ -344,7 +368,7 @@ def test_arr_A():
         parser()
     except ValueError as err:
         assert(type(err) == ValueError)
-        
+    
 def test_arr_E():
     try:
         xml_filename = "E_arr.xml"
@@ -384,3 +408,4 @@ def test_const_k():
         parser()
     except ValueError as err:
         assert(type(err) == ValueError)
+
