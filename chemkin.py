@@ -44,29 +44,39 @@ class ReactionParser():
         """
         tree = ET.parse(self.xml_filename)
         rxns = tree.getroot()
+
         # species
         phase = rxns.findall('phase')
         species_list = []
         for phase in rxns.findall('phase'):
             species = phase.find('speciesArray').text
-        self.species = species.split()
+        species_list = species.split()
+        self.species = {}
+        for specie in species_list:
+            self.species[specie] = None
         
         # rxns
         for reactionData in rxns.findall('reactionData'):
             for reaction in reactionData.findall('reaction'):
+                
                 # get id
                 Id = reaction.get('id')
+                
                 # get is_reversible
                 if reaction.get('reversible') == "yes":
                     is_reversible = True
                 else:
                     is_reversible = False
+                
                 # type
                 rxn_type = reaction.get('type')
+
                 # rxn_equation
                 rxn_equation = reaction.find('equation').text
+
                 # reaction_coef
                 for coef in reaction.findall('rateCoeff'):
+
                     # Arrhenius
                     if coef.find('Arrhenius') is not None:
                         for arr in coef.findall('Arrhenius'):
@@ -82,6 +92,7 @@ class ReactionParser():
                             "A":A,
                             "E":E
                         }
+
                     # modified Arrhenius
                     if coef.find('modifiedArrhenius') is not None:
                         for arr in coef.findall('modifiedArrhenius'):
@@ -102,6 +113,7 @@ class ReactionParser():
                             "b":b,
                             "E":E
                         }
+
                     # constant
                     if coef.find('Constant') is not None:
                         for arr in coef.findall('Constant'):
@@ -112,25 +124,36 @@ class ReactionParser():
                         rate_coeffs_components = {
                             "k":k
                         }
+
                 # reactant_stoich_coeffs
                 reactant_stoich_coeffs = {}
                 for reactant in reaction.find('reactants').text.split():
                     key = reactant.split(":")[0]
-                    value = int(reactant.split(":")[1])
-                    reactant_stoich_coeffs[key] = value
+
+                    value = reactant.split(":")[1]
+                    reactant_stoich_coeffs[key] = int(value)
+
+
                 # product_stoich_coeffs
                 product_stoich_coeffs = {}
                 for product in reaction.find('products').text.split():
                     key = product.split(":")[0]
-                    value = int(product.split(":")[1])
-                    product_stoich_coeffs[key] = value
-                rxn = Reaction(rxn_type, is_reversible, rxn_equation, 
-                                       self.species, rate_coeffs_components,
-                                       reactant_stoich_coeffs, product_stoich_coeffs)
-                self.reaction_list.append(rxn)
+
+
+                    value = product.split(":")[1]
+                    product_stoich_coeffs[key] = int(value)
+
+                if is_reversible == False and rxn_type == "Elementary":
+                    rxn = Reaction(rxn_type, is_reversible, rxn_equation, 
+                                           self.species, rate_coeffs_components,
+                                           reactant_stoich_coeffs, product_stoich_coeffs)
+                    self.reaction_list.append(rxn)
+                
+                else:
+                    raise NotImplementedError("This type of reaction has not been implemented yet!")
 
 class Reaction():
-    """Base class for a reaction"""
+    """Base class for an elementary (irreversible) reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list,
                  rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
@@ -284,6 +307,7 @@ class Reaction():
         """
         k = ReactionCoeff(self.rate_coeffs_components,
                           T=self.temperature).k
+        self.rxn_rate_coeff = k
         return k
 
     def compute_progress_rate(self, T=None):
@@ -319,7 +343,7 @@ class Reaction():
                 concen_powered_j = concen_array**reactant_stoich_coeffs[:, j]
 
             if isinstance(k, float) or isinstance(k, int):
-                if k <= 0:
+                if k < 0:
                     raise ValueError("Reaction rate constants must be positive!")
                 
                 omega_j = k * numpy.prod(concen_powered_j)
@@ -334,6 +358,7 @@ class Reaction():
 
                 omega_j = k[j] * numpy.prod(concen_powered_j)
                 omega_array[j] = omega_j
+
         return omega_array
 
     def compute_reaction_rate(self, T=None):
@@ -359,12 +384,16 @@ class Reaction():
 
         omega_array = self.compute_progress_rate(T)
 
-        if omega_array.shape == (1, ) :
-            omega_array = numpy.ones(len(concen_array)) * omega_array[0]
-
         nu_ij = product_stoich_coeffs - reactant_stoich_coeffs
 
+
+        if omega_array.shape == (1, ):
+            temp = numpy.zeros(len(concen_array))
+            temp[numpy.nonzero(nu_ij)] = omega_array
+            omega_array = numpy.copy(temp)
+
         rxn_rate_array = numpy.dot(nu_ij, omega_array)
+
         return rxn_rate_array
 
 
@@ -380,8 +409,7 @@ class IrreversibleReaction(Reaction):
 
 
 class ReversibleReaction(Reaction):
-    """Class for reversible reaction
-    TODO: Not implemented yet!"""
+    """Class for reversible reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
         super().__init__(self, rxn_type, is_reversible, rxn_equation, rate_coeffs_components,
@@ -435,7 +463,7 @@ class ReactionCoeff():
         keys = set(k_parameters.keys())
         valid_keys = set(['A', 'E', 'b', "R", "k"])
         if not(keys <= valid_keys):
-            raise ValueError("Invalid key in the input!")
+            raise ValueError("Invalid key in the input! Go to get_coeff function to implement your own k!")
 
         # Constant
         if "k" in k_parameters:
@@ -444,6 +472,7 @@ class ReactionCoeff():
         # Arrhenius
         elif ("A" in k_parameters and "E" in k_parameters and
               "b" not in k_parameters):
+
             if T == None:
                 raise ValueError("Temperature has not been set in the reaction!")
 
@@ -474,7 +503,6 @@ class ReactionCoeff():
                                     b=k_parameters['b'],
                                     T=T)
 
-        # TODO: TEST THIS PART!
         else:
             raise NotImplementedError("This reaction rate coefficient has not been implemented!")
 
@@ -597,4 +625,27 @@ class ReactionCoeff():
         return k
 
 
+# if __name__ == "__main__":
 
+#     xml_filename = "rxns.xml"
+#     parser = ReactionParser(xml_filename)
+#     parser()
+#     rxn1 = parser.reaction_list[0]
+
+#     print rxn1
+#     # print rxn1.species_list
+#     # print rxn1.reactant_stoich_coeffs
+#     # print rxn1.product_stoich_coeffs
+#     # print rxn1.rate_coeffs_components
+
+#     rxn1.set_concentrations({'H':1, 'O2':2, 'OH':0, 'O':0, 'H2O':0, 'H2':0})
+#     rxn1.set_temperature(100)
+#     rxn1.compute_reaction_rate_coeff()
+#     omega = rxn1.compute_progress_rate()
+#     rxnrate = rxn1.compute_reaction_rate()
+
+#     print("Reaction rate coefficient (k) : {}".format(rxn1.rxn_rate_coeff))
+#     print("Reaction progress rate: {}".format(omega))
+#     print("Reaction rate: {}".format(rxnrate))
+
+    
