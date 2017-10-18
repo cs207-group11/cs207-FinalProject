@@ -1,6 +1,7 @@
 
 """Test module for chemkin."""
 
+
 import numpy
 import pytest
 import warnings
@@ -323,8 +324,13 @@ def test_ReactionParser_species():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
+<<<<<<< HEAD
     assert parser.species == {'H': None, 'O':None, 'OH':None, 'H2':None, 'H2O':None, 'O2':None}
 
+=======
+    assert parser.species == {'H':None, 'O':None, 'OH':None, 'H2':None, 'H2O':None, 'O2':None}
+    
+>>>>>>> 3b61789d0dcbfbdce1d98247c15637b97d6215d5
 def test_ReactionParser_type():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
@@ -343,6 +349,7 @@ def test_ReactionParser_rate_coeffs_components():
     parser()
     assert parser.reaction_list[0].rate_coeffs_components == {'A': 35200000000.0, 'E': 71400.0}
 
+<<<<<<< HEAD
 def test_ReactionParser_rxn_equation():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
@@ -360,6 +367,16 @@ def test_ReactionParser_product_stoich_coeffs():
     parser = ReactionParser(xml_filename)
     parser()
     assert parser.reaction_list[0].product_stoich_coeffs == {'H': 0, 'H2': 0, 'H2O': 0, 'O': 1, 'O2': 0, 'OH': 1}
+=======
+# # temporary
+# def test_unrecognizable_rxn():
+#     try:
+#         xml_filename = "unrecognized_rxn.xml"
+#         parser = ReactionParser(xml_filename)
+#         parser()
+#     except ValueError as err:
+#         assert(type(err) == NotImplementedError)
+>>>>>>> 3b61789d0dcbfbdce1d98247c15637b97d6215d5
 
 def test_arr_A():
     try:
@@ -409,3 +426,18 @@ def test_const_k():
     except ValueError as err:
         assert(type(err) == ValueError)
 
+<<<<<<< HEAD
+=======
+def test_overall_workflow_elementary_rxn():
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    rxn1 = parser.reaction_list[0]
+
+    rxn1.set_concentrations({'H':1, 'O2':2, 'OH':0, 'O':0, 'H2O':0, 'H2':0})
+    rxn1.set_temperature(100)
+    rxnrate = rxn1.compute_reaction_rate()
+    expected = 0.0
+    assert rxnrate == expected
+
+>>>>>>> 3b61789d0dcbfbdce1d98247c15637b97d6215d5
