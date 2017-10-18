@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<ctml>
+
+    <phase>
+        <speciesArray> H O OH H2 H2O O2 </speciesArray>
+    </phase>
+
+    <reactionData id="test_mechanism">
+        <!-- reaction 02 -->
+        <reaction reversible="no" type="Elementary" id="reaction02">
+            <equation>H2 + O =] OH + H</equation>
+            <rateCoeff>
+                <modifiedArrhenius>
+                    <A></A>
+                    <b>2.7</b>
+                    <E>2.63e+04</E>
+                </modifiedArrhenius>
+            </rateCoeff>
+            <reactants>H2:1 O:1</reactants>
+            <products>OH:1 H:1</products>
+        </reaction>
+
+    </reactionData>
+
+</ctml>
