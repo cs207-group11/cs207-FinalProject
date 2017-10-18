@@ -1,6 +1,7 @@
 
 """Test module for chemkin."""
 
+
 import numpy
 import pytest
 import warnings
@@ -323,7 +324,7 @@ def test_ReactionParser_species():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
-    assert parser.species == ['H', 'O', 'OH', 'H2', 'H2O', 'O2']
+    assert parser.species == {'H':None, 'O':None, 'OH':None, 'H2':None, 'H2O':None, 'O2':None}
     
 def test_ReactionParser_type():
     xml_filename = "rxns.xml"
@@ -336,7 +337,16 @@ def test_ReactionParser_rate_coeffs_components():
     parser = ReactionParser(xml_filename)
     parser()
     assert parser.reaction_list[0].rate_coeffs_components == {'A': 35200000000.0, 'E': 71400.0}
-    
+
+# # temporary
+# def test_unrecognizable_rxn():
+#     try:
+#         xml_filename = "unrecognized_rxn.xml"
+#         parser = ReactionParser(xml_filename)
+#         parser()
+#     except ValueError as err:
+#         assert(type(err) == NotImplementedError)
+
 def test_arr_A():
     try:
         xml_filename = "A_arr.xml"
@@ -384,3 +394,16 @@ def test_const_k():
         parser()
     except ValueError as err:
         assert(type(err) == ValueError)
+
+def test_overall_workflow_elementary_rxn():
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    rxn1 = parser.reaction_list[0]
+
+    rxn1.set_concentrations({'H':1, 'O2':2, 'OH':0, 'O':0, 'H2O':0, 'H2':0})
+    rxn1.set_temperature(100)
+    rxnrate = rxn1.compute_reaction_rate()
+    expected = 0.0
+    assert rxnrate == expected
+
