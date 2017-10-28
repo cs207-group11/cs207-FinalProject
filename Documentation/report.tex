@@ -1,0 +1,49 @@
+% It is advisable to learn the basics of LaTeX before using this template.
+% A good resource to start with is http://en.wikibooks.org/wiki/LaTeX/
+%
+% All template fields are marked with a pair of angular brackets e.g. <title here>
+% except for the ones defining citation names in ref.tex.
+%
+% Empty space after chapter/section/subsection titles can be used to insert text.
+%
+% Just compile this file using pdflatex after making all required changes.
+
+\documentclass[12pt,a4paper]{report}
+\usepackage[pdftex]{graphicx} %for embedding images
+\usepackage{url} %for proper url entries
+\usepackage{fancyhdr,lipsum}
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markright{\ #1}{}}
+\fancyhf{}% Clear header/footer
+\fancyhead[L]{\bfseries\rightmark}
+\fancyhead[R]{\bfseries\thepage}
+\usepackage{listings} %code extracts
+\usepackage{xcolor} %custom colours
+\usepackage{mdframed} %nice frames
+\usepackage{hyperref}
+\definecolor{light-gray}{gray}{0.95} %the shade of grey that stack exchange uses
+
+\begin{document}
+\renewcommand\bibname{References} %Renames "Bibliography" to "References" on ref page
+
+%include other pages
+\input{title}
+\input{abstract}
+
+\pagenumbering{roman} %numbering before main content starts
+\tableofcontents
+\listoffigures
+
+\newpage
+\pagenumbering{arabic} %reset numbering to normal for the main content
+
+%\input{prob-definition} %objective changed to problem definition
+\input{Introduction} %literature survey included in this
+\input{Installation}
+\input{Usage-and-Examples}
+\input{future-work}
+%\input{conclusion}
+%\input{acknow}
+\input{ref}
+
+\end{document}
