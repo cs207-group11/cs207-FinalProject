@@ -154,7 +154,8 @@ class Reaction():
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list,
                  rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
-        """Initializes Reaction
+        """
+        Initializes Reaction
     
         INPUTS:
         -------
@@ -257,7 +258,6 @@ class Reaction():
         """
         if T <= 0:
             raise ValueError("Temperature has to be a positive value!")
-
         self.temperature = T
 
     def set_concentrations(self, X):
@@ -302,8 +302,7 @@ class Reaction():
         k : numeric type (or list of numeric type)
             Reaction rate coefficient
         """
-        k = ReactionCoeff(self.rate_coeffs_components,
-                          T=self.temperature).k
+        k = ReactionCoeff(self.rate_coeffs_components, T=self.temperature).k
         self.rxn_rate_coeff = k
         return k
 
@@ -378,9 +377,7 @@ class Reaction():
             raise ValueError("Product stoichiometric coefficients must be positive!")
 
         k = self.compute_reaction_rate_coeff(T)
-
         omega_array = self.compute_progress_rate(T)
-
         nu_ij = product_stoich_coeffs - reactant_stoich_coeffs
 
 
@@ -390,7 +387,6 @@ class Reaction():
             omega_array = numpy.copy(temp)
 
         rxn_rate_array = numpy.dot(nu_ij, omega_array)
-
         return rxn_rate_array
 
 
@@ -460,7 +456,7 @@ class ReactionCoeff():
         keys = set(k_parameters.keys())
         valid_keys = set(['A', 'E', 'b', "R", "k"])
         if not(keys <= valid_keys):
-            raise ValueError("Invalid key in the input! Go to get_coeff function to implement your own k!")
+            raise ValueError("Invalid key in the input. Use get_coeff function to implement your own k!")
 
         # Constant
         if "k" in k_parameters:
@@ -471,7 +467,7 @@ class ReactionCoeff():
               "b" not in k_parameters):
 
             if T == None:
-                raise ValueError("Temperature has not been set in the reaction!")
+                raise ValueError("Temperature has not been set in the reaction. Please use set_temperature() method.")
 
             if "R" in k_parameters:
                 return self.arr(A=k_parameters['A'],
@@ -486,7 +482,7 @@ class ReactionCoeff():
         # Modified Arrhenius
         elif ("A" in k_parameters and "E" in k_parameters  and "b" in k_parameters):
             if T == None:
-                raise ValueError("Temperature has not been set in the reaction!")
+                raise ValueError("Temperature has not been set in the reaction. Please use set_temperature() method.")
 
             if "R" in k_parameters:
                 return self.mod_arr(A=k_parameters['A'],
@@ -501,7 +497,7 @@ class ReactionCoeff():
                                     T=T)
 
         else:
-            raise NotImplementedError("This reaction rate coefficient has not been implemented!")
+            raise NotImplementedError("The combination of parameters entered is not supported for the calculation of Reaction Rate Coefficient.")
 
     def const(self, k):
         """Returns constant reaction rate coefficients k.
@@ -522,8 +518,7 @@ class ReactionCoeff():
             - Raises ValueError if k is non-positive!
         """
         if k <= 0:
-            raise ValueError("Reaction rate must be positive!")
-
+            raise ValueError("Reaction rate must be positive.")
         return k
 
     def arr(self, A, E, T, R=8.314):
@@ -554,17 +549,17 @@ class ReactionCoeff():
             - Raises Warning if user changes value of R
         """
         if (A <= 0):
-            raise ValueError("Arrhenius prefactor A must be positive!")
+            raise ValueError("Arrhenius prefactor 'A' must be positive.")
 
         if (T <= 0):
-            raise ValueError("Temperatures T must be positive!")
+            raise ValueError("Temperatures 'T' must be positive.")
 
         if (R <= 0):
-            raise ValueError("Gas constant R must be positive!")
+            raise ValueError("Gas constant 'R' must be positive.")
 
         if not numpy.isclose(R, 8.314):
             warnings.warn("Please do not change the value of"
-                          " R unless for converting units!")
+                          " Universal Gas Constant 'R' unless you are converting units.")
 
         k = A * numpy.exp(-E / R / T)
         return k
@@ -603,20 +598,20 @@ class ReactionCoeff():
         """
 
         if (A <= 0):
-            raise ValueError("Parameter A must be positive!")
+            raise ValueError("Parameter 'A' must be positive.")
         
         if (T <= 0):
-            raise ValueError("Parameter T must be positive!")
+            raise ValueError("Parameter 'T' must be positive.")
         
         if (isinstance(b, numbers.Real)) == False:
-            raise TypeError("Parameter b must be a real number!")
+            raise TypeError("Parameter 'b' must be a real number.")
         
         if (R <= 0):
-            raise ValueError("Gas constant R must be positive!")
+            raise ValueError("Gas constant 'R' must be positive.")
 
         if not numpy.isclose(R, 8.314):
             warnings.warn("Please do not change the value of"
-                          " R unless for converting units!")
+                          " Universal Gas Constant 'R' unless for converting units.")
 
         k = A * T ** b * numpy.exp(-E / R / T)
         return k
@@ -645,4 +640,3 @@ class ReactionCoeff():
 #     print("Reaction progress rate: {}".format(omega))
 #     print("Reaction rate: {}".format(rxnrate))
 
-    

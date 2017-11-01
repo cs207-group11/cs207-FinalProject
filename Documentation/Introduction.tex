@@ -1,0 +1,91 @@
+\chapter{Introduction}
+
+\section{Problem Definition}
+It is accepted that computation has emerged as the third pillar of science alongside the pillars of theory and experiment. Computational science is maturing rapidly and has found considerable and significant use in supporting scientists from various disciplines. The Chemical Kinetics Library available in this repository aims to ease the process of calculation of Reaction Rate, Reaction Rate Coefficients and Progress Rate of a system of chemical reactions. The tool simplifies the process by orders of magnitude by simply taking a standard XML file as input and returning the desired parameters in suitable data structures. This library has great application in the field of Ordinary Differential Equation (ODE) solving for chemical reactions and can be further extended to more complex applications such as learning new reaction pathways in an artificial neural net based code library. 
+
+
+\section{Chemical Kinetics : Brief Overview}
+In the follow subsections, the essential Chemical Kinetics concepts behind the algorithms and their implementation have been discussed.
+\subsection{Reaction Rate and Coefficient}
+In chemical kinetics a reaction rate constant or reaction rate coefficient, k, quantifies the rate of a chemical reaction. For a reaction between reactants A and B to form product C :\\
+\begin{center}
+   $\nu_{A} A + \nu_{B} B \longrightarrow \nu_{C} C.$ 
+\end{center}
+The reaction rate is often found to have the form :
+\begin{center}
+   $ r = k(T) [A]^{m} [B]^{n}$ 
+\end{center}
+Here k(T) is the reaction rate constant that depends on temperature. [A] and [B] are the molar concentrations of substances A and B in moles per unit volume of solution, assuming the reaction is taking place throughout the volume of the solution. (For a reaction taking place at a boundary one would use instead moles of A or B per unit area).\\
+\\The exponents \textbf{m} and \textbf{n} are called partial orders of reaction and are not generally equal to the stoichiometric coefficients a and b. Instead they depend on the reaction mechanism and can be determined experimentally.\\
+\\The Reaction Rate Coefficient has multiple forms : \\
+\begin{center}
+   {$&k_{\textrm{const}}   = k \hspace{3.9cm}\tag{\textbf{Constant}}$
+\end{center}
+\begin{center}
+   $&k_{\textrm{arr}}     = A \exp\left(-\frac{E}{RT}\right)$ \hspace{2cm} \tag{\textbf{Arrhenius}}
+\end{center}
+\begin{center}
+   $&k_{\textrm{mod-arr}} = A T^{b} \exp\left(-\frac{E}{RT}\right) \hspace{1cm} \tag{\textbf{Modified Arrhenius}}$
+\end{center}
+\vspace{0.1in}
+The symbols used above are :
+\begin{itemize}
+    \item The Arrhenius prefactor : $A$
+    \item The Modified Arrhenius parameter : $b$
+    \item The Temperature : $T$ in Kelvin. 
+    \item Activation Energy : $E$ in Joule/mol
+    \item $R = 8.314$ is the ideal gas constant (in Joules/ mol K).
+\end{itemize}
+
+\subsection{System of Reactions}
+Consider a system consisting of $N$ species undergoing $M$ irreversible, elementary reactions of the form :
+\begin{center}
+     $\sum_{i=1}^{N}{\nu_{ij}^{\prime}\mathcal{S}_{i}} \longrightarrow 
+  \sum_{i=1}^{N}{\nu_{ij}^{\prime\prime}\mathcal{S}_{i}}, \qquad j = 1, \ldots, M$
+\end{center}
+\vspace{0.7in}The Rate of Change of Specie $i$ (the Reaction Rate) can be written as :\begin{center}
+     $f_{i} = \sum_{j=1}^{M}{\nu_{ij}\omega_{j}}, \qquad i = 1, \ldots, N$
+\end{center}
+And the Progress Rate for each reaction is given by :\begin{center}
+  $\omega_{j} = k_{j}\prod_{i=1}^{N}{x_{i}^{\nu_{ij}^{\prime}}}, \qquad j = 1, \ldots, M$
+\end{center}
+and $k_{j}$ is the forward reaction rate coefficient. The symbols used above are :
+\begin{itemize}
+    \item Chemical symbol of the Specie $i$ : $\mathcal{S}_{i}$
+    \item Stoichiometric Coefficients of the Reactants : $\nu_{ij}^{\prime}$
+    \item Stoichiometric coefficients of Products : $\nu_{ij}^{\prime\prime}$ 
+    \item Rate of consumption or formation of specie $i$ (Reaction Rate) : $f_{i}$ 
+    \item Progress Rate of reaction $j$ : $\omega_{j}$
+    \item Concentration of Specie $i$ : $x_{i}$
+    \item Reaction Rate Coefficient for reaction $j$ : $k_{j}$ 
+\end{itemize}
+\section{Code Features}
+\subsection{Flow of Control}
+From the above expressions, it is clear that the terms/parameters of a system of reactions need to be calculated in an specified order. The Reaction and Progress Rate ($\omega_{j}$) depend on the Rate Coefficient ($k_{j}$) and the Concentrations of each Specie (${\nu_{ij}}$) depends on the Reaction Rate ($f_{i}$) and Time ($t$) for which the reaction is allowed to progress. \\
+\\The Initial Concentrations of the Reactants ($\nu_{ij}^{\prime}$)  and the Temperature ($T$) need to be input by the user dynamically for a specific reaction to observe the variance of the results for different initial conditions. The Species involved in the system and the type of reaction, however, is pre-defined.\\
+\\Abiding by this model, the usage of the library needs to follow an ordered set of operations :
+\begin{itemize}
+    \item The \textbf{Parser} extracts the Parameters and Species of a chemical reaction from XML file.
+    \item In the \textbf{ChemKin} module, the Reaction Rate Coefficient needs to be calculated for an input Temperature and Concentrations using the information about the extracted Parameters.
+    \item Finally, the respective Reaction Rate/Progress Rate can be calculated based on Stoichiometric Coefficients, provided as input through the \textbf{Terminal}. 
+\end{itemize}
+
+\subsection{Data Structures}
+\subsubsection{Classes}
+\begin{itemize}
+    \item \textbf{class 'ReactionParser'} : The user instantiates an object of this class with the XML filename as an argument, it consists of methods that facilitate the extraction of Type of Reaction, Rate Parameters, Species and Stoichiometric Coefficients from the file.
+    \item \textbf{class 'Reaction'} : The class 'ReactionParser' instantiates an object of this class with the parameters obtained from methods of the class 'ReactionParser'. It consists of methods that allow the user definition of Temperature, Concentrations and calculation Progress/Reaction Rate.
+    \item \textbf{class 'ReactionCoeff'} : An object of this class is called by method 'compute\_reaction\_rate\_coeff' of class 'Reaction' with the parameters for the calculation of Rate Coefficient in the form of a dictionary and Temperature as arguments. It consists of methods that calculate the Reaction rate Coefficent based on the parameters passed.
+\end{itemize}
+\subsubsection{Dictionaries}
+\begin{itemize}
+    \item \textbf{Reaction Rate Parameters} : Parameters such as Activation Energy, Arrhenius pre-factor and Rate Constant are passed as a single dictionary for ease of calculation of Rate Coefficients.
+    \item \textbf{Stoichiometric Reactant Coefficients} : The values of the Stoichiometric Reactant Coefficients are stored in a dictionary with the unique species as an index for ease of calculation of Reaction/Progress Rate.
+    \item \textbf{Stoichiometric Product Coefficients} : The values of the Stoichiometric Product Coefficients are stored in a dictionary with the unique species as an index for ease of calculation of Reaction/Progress Rate.
+\end{itemize}
+\subsubsection{Other Data Structures}
+\begin{itemize}
+    \item \textbf{Lists} : are used to store a collection of the unique species of the system of reactions.
+    \item \textbf{Sets} : are used for easy unique-ness check operations at the reaction level.
+\end{itemize}
+\textbf{}
