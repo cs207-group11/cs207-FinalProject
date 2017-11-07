@@ -368,15 +368,16 @@ def test_ReactionParser_product_stoich_coeffs():
     parser = ReactionParser(xml_filename)
     parser()
     assert parser.reaction_list[0].product_stoich_coeffs == {'H': 0, 'H2': 0, 'H2O': 0, 'O': 1, 'O2': 0, 'OH': 1}
-    
-# # temporary
-# def test_unrecognizable_rxn():
-#     try:
-#         xml_filename = "unrecognized_rxn.xml"
-#         parser = ReactionParser(xml_filename)
-#         parser()
-#     except ValueError as err:
-#         assert(type(err) == NotImplementedError)
+  
+def test_unrecognizable_rxn():
+    '''TEMPORARY'''
+    """Test parser for reversible reaction. before milestone 2"""
+    try:
+        xml_filename = "unrecognized_rxn.xml"
+        parser = ReactionParser(xml_filename)
+        parser()
+    except NotImplementedError as err:
+        assert(type(err) == NotImplementedError)
 
 def test_arr_A():
     try:
