@@ -211,24 +211,17 @@ class ReactionParser():
         """
         for reactionData in self.rxns.findall('reactionData'):
             for reaction in reactionData.findall('reaction'):
-                # get species
-                self.get_species()
-                # get is_reversible
+                species = self.get_species()
                 is_reversible = self.get_is_reversible(reaction) 
-                # type
                 rxn_type = self.get_rxn_type(reaction)
-                # rxn_equation
                 rxn_equation = self.get_rxn_equation(reaction)
-                # reaction_coef
                 rate_coeffs_components = self.get_rate_coeffs_components(reaction)
-                # reactant_stoich_coeffs
                 reactant_stoich_coeffs = self.get_reactant_stoich_coeffs(reaction)
-                # product_stoich_coeffs
                 product_stoich_coeffs = self.get_product_stoich_coeffs(reaction)
                 
                 if is_reversible == False and rxn_type == "Elementary":
                     rxn = Reaction(rxn_type, is_reversible, rxn_equation, 
-                                           self.species, rate_coeffs_components,
+                                           species, rate_coeffs_components,
                                            reactant_stoich_coeffs, product_stoich_coeffs)
                     self.reaction_list.append(rxn)
                 
