@@ -6,18 +6,26 @@ import warnings
 import os.path
 import xml.etree.ElementTree as ET
 
+
 class ReactionParser():
     """Class for parsing input xml file describing reactions"""
     def __init__(self, xml_filename):
         """Initializes ReactionParser
+        
         INPUTS:
         -------
         xml_filename : str
             filename of input xml file
+        
         ATTRIBUTES:
         -----------
         reaction_list : list
             list of Reaction (or Reaction-inherited) objects
+
+        NOTES:
+        ------
+        POST:
+            - Raises IOError if inputed xml file not found
         """
         if os.path.isfile(xml_filename):
             self.xml_filename = xml_filename
@@ -25,38 +33,24 @@ class ReactionParser():
             self.rxns = tree.getroot()
         else:
             raise IOError("Reaction (xml) file not found!")
-                      
-#         NOTES:
-#         ------
-#         POST:
-#             - Raises IOError if inputed xml file not found
-#                 except IOError as err:
-#             raise IOError("Reaction (xml) file not found!")
         
         self.reaction_list = []
 
     def __call__(self):
-        """Parser all information for all reactions by calling self.append_rxn function
-        INPUTS
-        ======
-        self : contains xml file name: self.xml_filename 
-                which is our target file to parser
+        """Parses all information for all reactions in xml file
+        by calling self.append_rxn()
         """
         self.append_rxn()
     
     def get_species(self):
-        """get reaction species
-        INPUTS:
-        -------
-        self : we need self for xml parsed content
+        """Returns reaction species
         
-        RETURNS
-        ========
-        species: a list of reaction species as dictionary
-                as the form key = species name, value = None,
-                value will be filled after we get the concentration from user.
+        RETURNS:
+        --------
+        species: a list of species as dictionary
+                in the form: key = species name, value = None,
+                value will be filled after we obtain the concentration from user.
         """
-        # species
         phase = self.rxns.findall('phase')
         species_list = []
         for phase in self.rxns.findall('phase'):
@@ -67,30 +61,31 @@ class ReactionParser():
             self.species[specie] = None
         return self.species
         
-    def get_rxn_type(self,reaction):
-        """get reaction type
+    def get_rxn_type(self, reaction):
+        """Returns reaction type
+
         INPUTS:
         -------
         reaction: parsed xml file which contains information about reactions
-        
-        RETURNS
-        ========
+
+        RETURNS:
+        --------
         rxn_type: a string describe reaction's type, such as "elementary".
         """
         rxn_type = reaction.get('type')
         return rxn_type
         
     def get_is_reversible(self,reaction):
-        """get information about whether the reaction is reversible
+        """Returns information about whether the reaction is reversible
+        
         INPUTS:
         -------
         reaction: parsed xml file which contains information about reactions
         
-        RETURNS
-        ========
+        RETURNS:
+        --------
         is_reversible: a boolean, True = reversible and False = irreversible
         """
-        # get is_reversible
         if reaction.get('reversible') == "yes":
             is_reversible = True
         else:
@@ -98,32 +93,34 @@ class ReactionParser():
         return is_reversible
     
     def get_rxn_equation(self,reaction):
-        """get reaction equation
+        """Returns reaction equation
+        
         INPUTS:
         -------
         reaction: parsed xml file which contains information about reactions
         
-        RETURNS
-        ========
+        RETURNS:
+        --------
         rxn_equation: a string, reaction equation
         """
-        # rxn_equation
         rxn_equation = reaction.find('equation').text
         return rxn_equation
     
     def get_rate_coeffs_components(self,reaction):
-        """get rate coeffs components based on type of coefficient type
+        """Returns reaction rate coefficient components
+        based on type of coefficient
+        
         INPUTS:
         -------
         reaction: parsed xml file which contains information about reactions
         
-        RETURNS
-        ========
+        RETURNS:
+        --------
         rate_coeffs_components: a dictionary, as the form of {coefficient name: coefficient value}. 
         """
-        # reaction_coef
         for coef in reaction.findall('rateCoeff'):
-            # Arrhenius
+
+            # Arrhenius-type
             if coef.find('Arrhenius') is not None:
                 for arr in coef.findall('Arrhenius'):
                     if arr.find('A') is None or arr.find('A').text is None:
@@ -139,7 +136,7 @@ class ReactionParser():
                     "E":E
                 }
 
-            # modified Arrhenius
+            # modified Arrhenius-type
             if coef.find('modifiedArrhenius') is not None:
                 for arr in coef.findall('modifiedArrhenius'):
                     if arr.find('A') is None or arr.find('A').text is None:
@@ -160,7 +157,7 @@ class ReactionParser():
                     "E":E
                 }
 
-            # constant
+            # constant-type
             if coef.find('Constant') is not None:
                 for arr in coef.findall('Constant'):
                     if arr.find('k') is None or arr.find('k').text is None:
@@ -173,16 +170,16 @@ class ReactionParser():
             return rate_coeffs_components
 
     def get_reactant_stoich_coeffs(self,reaction):
-        """get reactant stoichiometric coefficients
+        """Returns reactant stoichiometric coefficients
+        
         INPUTS:
         -------
         reaction: parsed xml file which contains information about reactions
         
-        RETURNS
-        ========
+        RETURNS:
+        --------
         reactant_stoich_coeffs: a dictionary, as the form of {reactant name: coefficient}. 
         """
-        # reactant_stoich_coeffs
         reactant_stoich_coeffs = {}
         for reactant in reaction.find('reactants').text.split():
             key = reactant.split(":")[0]
@@ -191,16 +188,16 @@ class ReactionParser():
         return reactant_stoich_coeffs
     
     def get_product_stoich_coeffs(self,reaction):
-        """get product stoichiometric coefficients
+        """Returns product stoichiometric coefficients
+        
         INPUTS:
         -------
         reaction: parsed xml file which contains information about reactions
         
-        RETURNS
-        ========
+        RETURNS:
+        --------
         product_stoich_coeffs: a dictionary, as the form of {product name: coefficient}. 
         """
-        # product_stoich_coeffs
         product_stoich_coeffs = {}
         for product in reaction.find('products').text.split():
             key = product.split(":")[0]
@@ -209,12 +206,8 @@ class ReactionParser():
         return product_stoich_coeffs
     
     def append_rxn(self):
-        """loop through the parsed xml file, then loop through each reaction and get their information
-            such as reaction type, create a Reaction object for each reaction. Append each Reaction 
-            object to self.reaction_list
-        INPUTS:
-        -------
-        self: parsed xml file
+        """Appends a Reaction/Reaction-inherited object fo each reaction described by
+        input xml file to self.reaction_list.
         """
         for reactionData in self.rxns.findall('reactionData'):
             for reaction in reactionData.findall('reaction'):
@@ -241,6 +234,7 @@ class ReactionParser():
                 
                 else:
                     raise NotImplementedError("This type of reaction has not been implemented yet!")
+
 
 class Reaction():
     """Base class for an elementary (irreversible) reaction"""
