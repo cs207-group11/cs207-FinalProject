@@ -245,8 +245,46 @@ class ReactionParser():
                                          reactant_stoich_coeffs, product_stoich_coeffs)
                     self.reaction_list.append(rxn)
 
+
 class ReactionSystem():
-    pass
+    """Class for a system of reactions"""
+    def __init__(self, reaction_list):
+        self.reaction_list = reaction_list
+
+    def set_temperature(self, T):
+        """Sets temperature of the reaction system
+
+        INPUTS
+        ======
+        T : float
+            Temperature of reaction
+
+        NOTES
+        =====
+        POST:
+            - Updates self.temperature
+            - Raises ValueError if inputed temperature is non-positive
+        """
+        if T <= 0:
+            raise ValueError("Temperature has to be a positive value!")
+        for r in self.reaction_list:
+            r.set_temperature(T)
+
+    def set_concentrations(self, X):
+        """Sets concentrations of the reaction
+
+        INPUTS
+        ======
+        X : dict
+            dictionary with species and corresponding concentrations
+        """
+        for r in self.reaction_list:
+            r.set_concentrations(X)
+
+    def get_reaction_rate(self):
+        reaction_rate_list = [r.compute_reaction_rate() for r in self.reaction_list]
+        return sum(reaction_rate_list)
+
 
 
 class Reaction():
@@ -356,8 +394,6 @@ class Reaction():
             - Updates self.temperature
             - Raises ValueError if inputed temperature is non-positive
         """
-        if T <= 0:
-            raise ValueError("Temperature has to be a positive value!")
         self.temperature = T
 
     def set_concentrations(self, X):
@@ -464,7 +500,6 @@ class IrreversibleReaction(Reaction):
         if k < 0:
             raise ValueError("Reaction rate constants must be positive!")
 
-        print("check", k, concen_array, reactant_stoich_coeffs, concen_powered_j)
         progress_rate = k * numpy.prod(concen_powered_j)
 
 
