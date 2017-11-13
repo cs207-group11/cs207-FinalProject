@@ -8,6 +8,9 @@ from chemkin import *
 # Treat warnings like errors (for testing purposes)
 warnings.simplefilter("error")
 
+
+####### TESTS FOR REACTION OBJECT ###############
+
 @pytest.fixture
 def test_base_reaction():
     """Returns a valid reaction (from rxns.xml)"""
@@ -312,12 +315,26 @@ def test_ReactionCoeff_mod_arrhenius_changing_R():
     with pytest.raises(UserWarning):
         k_test = ReactionCoeff(k_parameters, T).k
 
-def test_ReactionParser_IOError():
-    """Test when wrong xml is passed to parser"""
-    try:
+
+
+
+
+
+
+
+
+
+
+
+
+####### TESTS FOR REACTIONPARSER OBJECT ###############
+
+
+
+def test_ReactionParser_file_not_found():
+    """Test when xml file is nonexistent"""
+    with pytest.raises(IOError):
         parser = ReactionParser("no_such_file")
-    except IOError as err:
-        assert(type(err) == IOError)
 
 def test_ReactionParser_species():
     """Test when reaction rate coefficient is modified
@@ -325,7 +342,8 @@ def test_ReactionParser_species():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
-    assert parser.species == {'H':None, 'O':None, 'OH':None, 'H2':None, 'H2O':None, 'O2':None}
+    assert parser.species == ({'H': None,'O': None, 'OH': None,
+                              'H2': None, 'H2O': None, 'O2': None})
     
 def test_ReactionParser_type():
     """Test get_rxn_type() for an elementary reaction."""
@@ -339,7 +357,8 @@ def test_ReactionParser_rate_coeffs_components():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
-    assert parser.reaction_list[0].rate_coeffs_components == {'A': 35200000000.0, 'E': 71400.0}
+    assert (parser.reaction_list[0].rate_coeffs_components ==
+            {'A': 35200000000.0, 'E': 71400.0})
     
 def test_ReactionParser_is_reversible():
     """Test get_is_reversible for reaction irreversible reaction."""
@@ -360,81 +379,101 @@ def test_ReactionParser_reactant_stoich_coeffs():
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
-    assert parser.reaction_list[0].reactant_stoich_coeffs == {'H': 1, 'H2': 0, 'H2O': 0, 'O': 0, 'O2': 1, 'OH': 0}
+    assert (parser.reaction_list[0].reactant_stoich_coeffs ==
+            {'H': 1, 'H2': 0, 'H2O': 0, 'O': 0, 'O2': 1, 'OH': 0})
 
 def test_ReactionParser_product_stoich_coeffs():
     """Test get_product_stoich_coeffs for reaction 1."""
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
-    assert parser.reaction_list[0].product_stoich_coeffs == {'H': 0, 'H2': 0, 'H2O': 0, 'O': 1, 'O2': 0, 'OH': 1}
+    assert (parser.reaction_list[0].product_stoich_coeffs ==
+            {'H': 0, 'H2': 0, 'H2O': 0, 'O': 1, 'O2': 0, 'OH': 1})
   
-def test_unrecognizable_rxn():
-    '''TEMPORARY'''
-    """Test parser for reversible reaction. before milestone 2"""
-    try:
-        xml_filename = "unrecognized_rxn.xml"
-        parser = ReactionParser(xml_filename)
-        parser()
-    except NotImplementedError as err:
-        assert(type(err) == NotImplementedError)
+# def test_unrecognizable_rxn():
+#     '''TEMPORARY'''
+#     """Test parser for reversible reaction. before milestone 2"""
+#     try:
+#         xml_filename = "unrecognized_rxn.xml"
+#         parser = ReactionParser(xml_filename)
+#         parser()
+#     except NotImplementedError as err:
+#         assert(type(err) == NotImplementedError)
 
 def test_arr_A():
-    try:
+    """Test when parameter A (for computing
+    Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
         xml_filename = "A_arr.xml"
         parser = ReactionParser(xml_filename)
         parser()
-    except ValueError as err:
-        assert(type(err) == ValueError)
         
 def test_arr_E():
-    try:
+    """Test when parameter E (for computing
+    Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
         xml_filename = "E_arr.xml"
         parser = ReactionParser(xml_filename)
         parser()
-    except ValueError as err:
-        assert(type(err) == ValueError)
 
 def test_mod_arr_A():
-    try:
+    """Test when parameter A (for computing
+    modified Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
         xml_filename = "A_mod_arr.xml"
         parser = ReactionParser(xml_filename)
         parser()
-    except ValueError as err:
-        assert(type(err) == ValueError)
-        
+
 def test_mod_arr_b():
-    try:
+    """Test when parameter b (for computing
+    modified Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
         xml_filename = "b_mod_arr.xml"
         parser = ReactionParser(xml_filename)
         parser()
-    except ValueError as err:
-        assert(type(err) == ValueError)
         
 def test_mod_arr_E():
-    try:
+    """Test when parameter E (for computing
+    modified Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
         xml_filename = "E_mod_arr.xml"
         parser = ReactionParser(xml_filename)
         parser()
-    except ValueError as err:
-        assert(type(err) == ValueError)
         
 def test_const_k():
-    try:
+    """Test when k (for computing
+    constant reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
         xml_filename = "k_const.xml"
         parser = ReactionParser(xml_filename)
         parser()
-    except ValueError as err:
-        assert(type(err) == ValueError)
+
+
+
+
+
 
 def test_overall_workflow_elementary_rxn():
+    """Test overall workflow (by checking final reaction rate)
+    for an irreversible elementary reaction."""
     xml_filename = "rxns.xml"
     parser = ReactionParser(xml_filename)
     parser()
     rxn1 = parser.reaction_list[0]
-
     rxn1.set_concentrations({'H':1, 'O2':2, 'OH':0, 'O':0, 'H2O':0, 'H2':0})
     rxn1.set_temperature(100)
     rxnrate = rxn1.compute_reaction_rate()
     expected = 0.0
-    assert rxnrate == expected   
+    assert rxnrate == expected
+
+
+# TODO: Add test using xml file with a set of reactions that David gave us!
+
+
+
