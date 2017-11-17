@@ -176,13 +176,6 @@ def test_set_invalid_concentrations(test_base_reaction_system):
     with pytest.raises(ValueError):
         test_sys.set_concentrations(X)
 
-def test_set_invalid_zero_concentrations(test_base_reaction_system):
-    """Tests for when zero values for concentrations entered.""" 
-    test_sys = test_base_reaction_system
-    X = {'H': 1, 'OH': 0, 'H2': 1, 'O':1, 'H2O':1, 'O2': 1}
-    with pytest.raises(ValueError):
-        test_sys.set_concentrations(X)
-
 def test_set_incomplete_concentrations(test_base_reaction_system):
     test_sys = test_base_reaction_system
     X = {'H': 1, 'H2O': 1, 'O':1, 'H2O':1, 'O2': 1}
