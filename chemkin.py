@@ -76,8 +76,17 @@ class ReactionSystem():
                 r.set_NASA_poly_coefs(self.NASA_matrix)
 
     def get_reaction_rate(self):
-        reaction_rate_list = [r.compute_reaction_rate() for r in self.reaction_list]
-        return sum(reaction_rate_list)
+        """Fetches reaction rate for each reaction.
+
+        RETURNS
+        -------
+        list_rxn_rates : list[float]
+            list of reaction rates of reactions in the system
+        """
+        reaction_rate_list = [rxnObj.compute_reaction_rate() for rxnObj in self.reaction_list]
+        return numpy.sum(reaction_rate_list)
+
+    # TODO: tests for these!
 
     def get_nasa_matrix(self, NASA_poly_coef):
         NASA = []
@@ -88,7 +97,7 @@ class ReactionSystem():
                 NASA.append(nasa["high"])
         return numpy.array(NASA)
 
-class Reaction():
+class Reaction(object):
     """Base class for an elementary (irreversible) reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list,
                  rate_coeffs_components,
@@ -195,6 +204,9 @@ class Reaction():
             - Updates self.temperature
             - Raises ValueError if inputed temperature is non-positive
         """
+        if T <= 0:
+            raise ValueError("Temperature has to be a positive value!")
+
         self.temperature = T
 
     def set_concentrations(self, X):
@@ -262,8 +274,8 @@ class IrreversibleReaction(Reaction):
     """Class for irreversible reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
-        super().__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
-                 reactant_stoich_coeffs, product_stoich_coeffs)
+        super(IrreversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
+                         reactant_stoich_coeffs, product_stoich_coeffs)
 
 
     def compute_reaction_rate_coeff(self, T=None):
@@ -376,7 +388,7 @@ class ReversibleReaction(Reaction):
 
 
 
-class ReactionCoeff():
+class ReactionCoeff(object):
     """Class for reaction rate coefficients, or values k."""
     def __init__(self, k_parameters, T=None):
         """Initializes reaction rate coefficients.
