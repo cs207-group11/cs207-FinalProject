@@ -138,12 +138,12 @@ def test_base_reaction_system():
                     reactant_stoich_coeffs={'H2' :1, 'OH':1},
                     product_stoich_coeffs={'H2O' :1, 'H':1})
     rxn2 = Reaction(rxn_type="Elementary",
-                    is_reversible=False,
-                    rxn_equation="H2 + OH =] H2O + H",
+                    is_reversible=True,
+                    rxn_equation="O2 + H =] H2O",
                     species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
-                    rate_coeffs_components={'A': 10, 'E': 100},
-                    reactant_stoich_coeffs={'H2' :1, 'OH':1},
-                    product_stoich_coeffs={'H2O' :1, 'H':1})
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'O2' :1, 'H':1},
+                    product_stoich_coeffs={'H2O' :1})
     reaction_list = [rxn1, rxn2]
     return ReactionSystem(reaction_list)
 
@@ -163,25 +163,39 @@ def test_set_invalid_temperature(test_base_reaction_system):
 def test_set_valid_concentrations(test_base_reaction_system):
     """Tests setting valid concentrations to reaction system."""
     test_sys = test_base_reaction_system
-    X = {'H': 1, 'OH': 1, 'H2O': 1, 'O':1, 'H2O':1, 'O2':1}
+    X = {'H': 1, 'OH': 1, 'H2': 1, 'O':1, 'H2O':1, 'O2': 1}
     test_sys.set_concentrations(X)
     for rxnObj in test_sys.reaction_list:
         list_concentrations = rxnObj.order_dictionaries(X)
         assert (list_concentrations == rxnObj.concentrations).all()
 
-# # TODO!!!!!!!!!!!!!
-# def test_set_invalid_concentrations(test_base_reaction_system):
-#     """Tests for when non-positive values for concentrations entered.""" 
-#     pass
+def test_set_invalid_concentrations(test_base_reaction_system):
+    """Tests for when non-positive values for concentrations entered.""" 
+    test_sys = test_base_reaction_system
+    X = {'H': 1, 'OH': -1, 'H2': 1, 'O':1, 'H2O':1, 'O2': 1}
+    with pytest.raises(ValueError):
+        test_sys.set_concentrations(X)
 
-# def test_set_incomplete_concentrations(test_base_reaction_system):
-#     """Tests for when not all species given concentration"""
-#     pass
+def test_set_invalid_zero_concentrations(test_base_reaction_system):
+    """Tests for when zero values for concentrations entered.""" 
+    test_sys = test_base_reaction_system
+    X = {'H': 1, 'OH': 0, 'H2': 1, 'O':1, 'H2O':1, 'O2': 1}
+    with pytest.raises(ValueError):
+        test_sys.set_concentrations(X)
 
-# def test_set_wrong_concentrations(test_base_reaction_system):
-#     """Tests for when wrong species (species not in reaction system)
-#     assigned concentrations."""
-#     pass
+def test_set_incomplete_concentrations(test_base_reaction_system):
+    test_sys = test_base_reaction_system
+    X = {'H': 1, 'H2O': 1, 'O':1, 'H2O':1, 'O2': 1}
+    with pytest.raises(ValueError):
+        test_sys.set_concentrations(X)
+
+def test_set_wrong_concentrations(test_base_reaction_system):
+    """Tests for when wrong species (species not in reaction system)
+    assigned concentrations."""
+    test_sys = test_base_reaction_system
+    X = {'H': 1, 'H2O': 1, 'O':1, 'H2O':1, 'O2': 1, 'A': 1}
+    with pytest.raises(ValueError):
+        test_sys.set_concentrations(X)
 
 
 
@@ -265,6 +279,10 @@ def test_Reaction_compute_reaction_rate(test_base_reaction):
 
 
 
+
+
+
+
 # ======================= TESTS FOR IRREVERSIBLE REACTION ====================== #
 
 @pytest.fixture
@@ -315,7 +333,7 @@ def test_wrongly_classified_irrev_rxn_nonElementary():
     """Test initializing wrongly classified IrreversibleReaction (actually non-elementary)"""
     with pytest.raises(IrreversibleReactionError):
         test = IrreversibleReaction(rxn_type="Non-elementary",
-                                    is_reversible=True,
+                                    is_reversible=False,
                                     rxn_equation="H2 + OH =] H2O + H",
                                     species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
                                     rate_coeffs_components={'k': 10},
@@ -422,8 +440,38 @@ def test_IrrevReaction_compute_reaction_rate_neg_product_stoich_coeffs(test_base
         rxnrate = test.compute_reaction_rate()
 
 
+
+
+
+
+
+
+
+
 # ======================= TESTS FOR REVERSIBLE REACTION ====================== #
 
+
+def test_wrongly_classified_rev_rxn_irreversible():
+    """Test initializing wrongly classified ReversibleReaction (actually irreversible)"""
+    with pytest.raises(ReversibleReactionError):
+        test = ReversibleReaction(rxn_type="Elementary",
+                                    is_reversible=False,
+                                    rxn_equation="H2 + OH =] H2O + H",
+                                    species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+                                    rate_coeffs_components={'k': 10},
+                                    reactant_stoich_coeffs={'H2' :1, 'OH':1},
+                                    product_stoich_coeffs={'H2O' :1, 'H':1})
+
+def test_wrongly_classified_rev_rxn_nonElementary():
+    """Test initializing wrongly classified ReversibleReaction (actually non-elementary)"""
+    with pytest.raises(ReversibleReactionError):
+        test = ReversibleReaction(rxn_type="Non-elementary",
+                                    is_reversible=True,
+                                    rxn_equation="H2 + OH =] H2O + H",
+                                    species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+                                    rate_coeffs_components={'k': 10},
+                                    reactant_stoich_coeffs={'H2' :1, 'OH':1},
+                                    product_stoich_coeffs={'H2O' :1, 'H':1})
 
 
 

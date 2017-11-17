@@ -238,6 +238,10 @@ class ReactionParser(object):
                     raise NotImplementedError("This type of reaction has not been implemented yet!")
 
 
+class ReactionSystemError(Exception):
+    """Class for ReactionSystem-related errors)"""
+    pass
+
 class ReactionSystem(object):
     """Class for a system of reactions extracted from an xml file"""
     def __init__(self, reaction_list):
@@ -247,8 +251,11 @@ class ReactionSystem(object):
         ------
         reaction_list : list[Reaction] or list[Reaction-like]
             list of Reaction or Reaction-inherited objects
+        involved_species : list[str]
+            list of all species in reaction system
         """
         self.reaction_list = reaction_list
+        self.involved_species = reaction_list[0].species_list
 
     def set_temperature(self, T):
         """Sets temperature of the reaction system.
@@ -281,14 +288,21 @@ class ReactionSystem(object):
         NOTES
         -----
         POST:
-            - Raises ValueError if any of inputed concentrations is non-positive 
+            - Raises ValueError if any of inputed concentrations is non-positive
+            - Raises ValueError if missing concentration of species involved in
+                system of reactions or if inputed name of species (with corresponding
+                concentrations) don't match name from xml file
         """
-        if (X.values() <= 0):
+        if (numpy.array(X.values()) <= 0).any():
             raise ValueError("You cannot have non-positive concentrations!")
+
+        if not (set(X.keys()) ==  set(self.involved_species)):
+            raise ValueError('''Inputed names of species with their concentrations 
+                             don't match species from xml file!''')
 
         for rxnObj in self.reaction_list:
             rxnObj.set_concentrations(X)
-
+           
     # TODO: handle if not all species covered, handle if invalid concentrations entered (catch at this level)
 
     def get_reaction_rate(self):
@@ -515,7 +529,7 @@ class Reaction(object):
 
 
 class IrreversibleReactionError(Exception):
-    """Error for misclassified IrrversibleReaction."""
+    """Error for misclassified IrreversibleReaction."""
     pass
 
 class IrreversibleReaction(Reaction):
@@ -590,13 +604,22 @@ class IrreversibleReaction(Reaction):
         return reaction_rate_1_eq
 
 
+
+
+
+class ReversibleReactionError(Exception):
+    """Error for misclassified ReversibleReaction."""
+    pass
+
 class ReversibleReaction(Reaction):
     """Class for reversible reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
-        super().__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
+        super(ReversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs)
 
+        if not (rxn_type == "Elementary" and is_reversible == True):
+            raise ReversibleReactionError("This reaction is not reversible nor elementary!") 
 
     def compute_reaction_rate_coeff(self, T=None):
         """Computes reaction rate coefficients of reaction.
