@@ -7,7 +7,7 @@ import os.path
 import xml.etree.ElementTree as ET
 
 
-class ReactionParser():
+class ReactionParser(object):
     """Class for parsing input xml file describing reactions"""
     def __init__(self, xml_filename):
         """Initializes ReactionParser
@@ -75,7 +75,7 @@ class ReactionParser():
         rxn_type = reaction.get('type')
         return rxn_type
         
-    def get_is_reversible(self,reaction):
+    def get_is_reversible(self, reaction):
         """Returns information about whether the reaction is reversible
         
         INPUTS:
@@ -187,7 +187,7 @@ class ReactionParser():
             reactant_stoich_coeffs[key] = int(value)
         return reactant_stoich_coeffs
     
-    def get_product_stoich_coeffs(self,reaction):
+    def get_product_stoich_coeffs(self, reaction):
         """Returns product stoichiometric coefficients
         
         INPUTS:
@@ -222,7 +222,6 @@ class ReactionParser():
                 if is_reversible == False and rxn_type == "Elementary":
                     rxn = IrreversibleReaction(rxn_type, is_reversible, rxn_equation,
                                            species, rate_coeffs_components,
-
                                            reactant_stoich_coeffs, product_stoich_coeffs)
                     self.reaction_list.append(rxn)
 
@@ -235,49 +234,68 @@ class ReactionParser():
                     raise NotImplementedError("This type of reaction has not been implemented yet!")
 
 
-class ReactionSystem():
-    """Class for a system of reactions"""
+class ReactionSystem(object):
+    """Class for a system of reactions extracted from an xml file"""
     def __init__(self, reaction_list):
+        """Initializes ReactionSystem.
+        
+        INPUTS
+        ------
+        reaction_list : list[Reaction] or list[Reaction-like]
+            list of Reaction or Reaction-inherited objects
+        """
         self.reaction_list = reaction_list
 
     def set_temperature(self, T):
-        """Sets temperature of the reaction system
+        """Sets temperature of the reaction system.
 
         INPUTS
-        ======
+        ------
         T : float
             Temperature of reaction
 
         NOTES
-        =====
+        -----
         POST:
             - Updates self.temperature
             - Raises ValueError if inputed temperature is non-positive
         """
         if T <= 0:
             raise ValueError("Temperature has to be a positive value!")
-        for r in self.reaction_list:
-            r.set_temperature(T)
+        
+        for rxnObj in self.reaction_list:
+            rxnObj.set_temperature(T)
 
     def set_concentrations(self, X):
-        """Sets concentrations of the reaction
+        """Sets concentrations of the reactions.
 
         INPUTS
         ======
         X : dict
             dictionary with species and corresponding concentrations
         """
-        for r in self.reaction_list:
-            r.set_concentrations(X)
+        for rxnObj in self.reaction_list:
+            rxnObj.set_concentrations(X)
+
+    # TODO: handle if not all species covered, handle if invalid concentrations entered (catch at this level)
 
     def get_reaction_rate(self):
-        reaction_rate_list = [r.compute_reaction_rate() for r in self.reaction_list]
-        return sum(reaction_rate_list)
+        """Fetches reaction rate for each reaction.
+
+        RETURNS
+        -------
+        list_rxn_rates : list[float]
+            list of reaction rates of reactions in the system
+        """
+        reaction_rate_list = [rxnObj.compute_reaction_rate() for rxnObj in self.reaction_list]
+        return numpy.sum(reaction_rate_list)
+
+    # TODO: tests for these!
 
 
 
 
-class Reaction():
+class Reaction(object):
     """Base class for an elementary (irreversible) reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list,
                  rate_coeffs_components,
@@ -384,6 +402,9 @@ class Reaction():
             - Updates self.temperature
             - Raises ValueError if inputed temperature is non-positive
         """
+        if T <= 0:
+            raise ValueError("Temperature has to be a positive value!")
+
         self.temperature = T
 
     def set_concentrations(self, X):
@@ -451,8 +472,8 @@ class IrreversibleReaction(Reaction):
     """Class for irreversible reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
-        super().__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
-                 reactant_stoich_coeffs, product_stoich_coeffs)
+        super(IrreversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
+                         reactant_stoich_coeffs, product_stoich_coeffs)
 
 
     def compute_reaction_rate_coeff(self, T=None):
@@ -558,7 +579,7 @@ class ReversibleReaction(Reaction):
 
 
 
-class ReactionCoeff():
+class ReactionCoeff(object):
     """Class for reaction rate coefficients, or values k."""
     def __init__(self, k_parameters, T=None):
         """Initializes reaction rate coefficients.
