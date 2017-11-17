@@ -219,17 +219,21 @@ class ReactionParser(object):
                 reactant_stoich_coeffs = self.get_reactant_stoich_coeffs(reaction)
                 product_stoich_coeffs = self.get_product_stoich_coeffs(reaction)
                 
+                # IRREVERSIBLE elementary reaction case
                 if is_reversible == False and rxn_type == "Elementary":
                     rxn = IrreversibleReaction(rxn_type, is_reversible, rxn_equation,
                                            species, rate_coeffs_components,
                                            reactant_stoich_coeffs, product_stoich_coeffs)
                     self.reaction_list.append(rxn)
 
+                # REVERSIBLE elementary reaction case
                 elif is_reversible == True and rxn_type == "Elementary":
                     rxn = ReversibleReaction(rxn_type, is_reversible, rxn_equation,
                                          species, rate_coeffs_components,
                                          reactant_stoich_coeffs, product_stoich_coeffs)
                     self.reaction_list.append(rxn)
+
+                # Unhandled reaction case
                 else:
                     raise NotImplementedError("This type of reaction has not been implemented yet!")
 
@@ -270,10 +274,18 @@ class ReactionSystem(object):
         """Sets concentrations of the reactions.
 
         INPUTS
-        ======
+        ------
         X : dict
             dictionary with species and corresponding concentrations
+
+        NOTES
+        -----
+        POST:
+            - Raises ValueError if any of inputed concentrations is non-positive 
         """
+        if (X.values() <= 0):
+            raise ValueError("You cannot have non-positive concentrations!")
+
         for rxnObj in self.reaction_list:
             rxnObj.set_concentrations(X)
 
@@ -293,10 +305,12 @@ class ReactionSystem(object):
     # TODO: tests for these!
 
 
-
+class ReactionError(Exception):
+    pass
 
 class Reaction(object):
-    """Base class for an elementary (irreversible) reaction"""
+    """Base class for an elementary reaction.
+    NOTE: This class is meant to serve as a framework for specific types of reactions!"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list,
                  rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
@@ -441,9 +455,117 @@ class Reaction(object):
         list_of_interest = [element[1] for element in sorted_tuple_list]
         return list_of_interest
 
+    def compute_reaction_rate_coeff(self, T=None):
+        """Computes reaction rate coefficients of reaction.
+
+        RETURNS
+        =======
+        k : numeric type (or list of numeric type)
+            Reaction rate coefficient
+        """
+        raise NotImplementedError
+
+    def compute_progress_rate(self, T=None):
+        """Computes progress rates of reaction.
+
+        RETURNS
+        =======
+        omega_array : numpy.ndarray
+            Array of progress rates of reaction
+        """
+        raise NotImplementedError
+        
+    def compute_reaction_rate(self, T=None):
+        """Computes reaction rate of this SINGLE reaction object.
+
+        RETURNS
+        =======
+        rxn_rate_array: numpy.ndarray
+            Array of reaction rates of reaction
+
+        NOTES
+        -----
+        POST:
+            - Raises ReactionError if compute_reaction_rate_coeff nor compute_progress_rate
+                has not been implemented. This Reaction class is meant to serve as a framework
+                for specific types of reactions!
+        """
+        reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
+        product_stoich_coeffs = numpy.array(self.order_dictionaries(self.product_stoich_coeffs))
+        concen_array = self.concentrations
+
+        if (reactant_stoich_coeffs < 0).any():
+            raise ValueError("Reactant stoichiometric coefficients must be positive!")
+        
+        if (product_stoich_coeffs < 0).any():
+            raise ValueError("Product stoichiometric coefficients must be positive!")
+
+        try:
+            progress_rate = self.compute_progress_rate(T)
+            nu_i = product_stoich_coeffs - reactant_stoich_coeffs
+
+            reaction_rate_1_eq = progress_rate * nu_i
+            return reaction_rate_1_eq
+
+        except NotImplementedError:
+            raise ReactionError('''You must first implement the functions to
+                                compute the reaction rate coefficients and progress rates!''')
+
+
+
+
+class IrreversibleReactionError(Exception):
+    """Error for misclassified IrrversibleReaction."""
+    pass
+
+class IrreversibleReaction(Reaction):
+    """Class for irreversible elementary reaction"""
+    def __init__(self, rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
+                 reactant_stoich_coeffs, product_stoich_coeffs):
+        super(IrreversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
+                         reactant_stoich_coeffs, product_stoich_coeffs)
+
+        if not (rxn_type == "Elementary" and is_reversible == False):
+            raise IrreversibleReactionError("This reaction is not irreversible nor elementary!") 
+
+    def compute_reaction_rate_coeff(self, T=None):
+        """Computes reaction rate coefficients of reaction.
+
+        RETURNS
+        =======
+        k : numeric type (or list of numeric type)
+            Reaction rate coefficient
+        """
+        k = ReactionCoeff(self.rate_coeffs_components,
+                          T=self.temperature).k
+        self.rxn_rate_coeff = k
+        return k
+
+    def compute_progress_rate(self, T=None):
+        """Computes progress rates of reaction.
+
+        RETURNS
+        =======
+        omega_array : numpy.ndarray
+            Array of progress rates of reaction
+        """
+        reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
+        concen_array = self.concentrations
+
+        if len(concen_array) == 0:
+            raise ValueError("You must set the concentrations first!")
+
+        k = self.compute_reaction_rate_coeff(T)
+        if k < 0:
+            raise ValueError("Reaction rate constants must be positive!")
+
+        concen_powered_j = concen_array ** reactant_stoich_coeffs
+
+        progress_rate = k * numpy.prod(concen_powered_j)
+        return progress_rate
 
     def compute_reaction_rate(self, T=None):
-        """Computes reaction rates of reaction.
+        """Computes reaction rate of this SINGLE reaction object.
 
         RETURNS
         =======
@@ -464,57 +586,8 @@ class Reaction(object):
         progress_rate = self.compute_progress_rate(T)
         nu_i = product_stoich_coeffs - reactant_stoich_coeffs
 
-        reaction_rate_1_eq = progress_rate*nu_i
+        reaction_rate_1_eq = progress_rate * nu_i
         return reaction_rate_1_eq
-
-
-class IrreversibleReaction(Reaction):
-    """Class for irreversible reaction"""
-    def __init__(self, rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
-                 reactant_stoich_coeffs, product_stoich_coeffs):
-        super(IrreversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
-                         reactant_stoich_coeffs, product_stoich_coeffs)
-
-
-    def compute_reaction_rate_coeff(self, T=None):
-        """Computes reaction rate coefficients of reaction.
-
-        RETURNS
-        =======
-        k : numeric type (or list of numeric type)
-            Reaction rate coefficient
-        """
-        k = ReactionCoeff(self.rate_coeffs_components, T=self.temperature).k
-        self.rxn_rate_coeff = k
-        return k
-
-
-    def compute_progress_rate(self, T=None):
-        """Computes progress rates of reaction.
-
-        RETURNS
-        =======
-        omega_array : numpy.ndarray
-            Array of progress rates of reaction
-        """
-        reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
-        concen_array = self.concentrations
-
-        if len(concen_array) == 0:
-            raise ValueError("You must set the concentrations first!")
-
-        k = self.compute_reaction_rate_coeff(T)
-
-        concen_powered_j = concen_array ** reactant_stoich_coeffs
-
-        #TODO: move to coeffs computation
-        if k < 0:
-            raise ValueError("Reaction rate constants must be positive!")
-
-        progress_rate = k * numpy.prod(concen_powered_j)
-
-
-        return progress_rate
 
 
 class ReversibleReaction(Reaction):
