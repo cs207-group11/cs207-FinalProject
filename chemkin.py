@@ -293,8 +293,10 @@ class ReactionSystem(object):
                 system of reactions or if inputed name of species (with corresponding
                 concentrations) don't match name from xml file
         """
-        if (numpy.array(X.values()) < numpy.zeros(len(X.values()))).any():
-            raise ValueError("You cannot have non-positive concentrations!")
+
+        for concentration in X.values():
+            if concentration < 0:
+                raise ValueError("You cannot have non-positive concentrations!")
 
         if not (set(X.keys()) ==  set(self.involved_species)):
             raise ValueError('''Inputed names of species with their concentrations 
