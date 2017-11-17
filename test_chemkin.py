@@ -9,7 +9,184 @@ from chemkin import *
 warnings.simplefilter("error")
 
 
-####### TESTS FOR REACTION OBJECT ###############
+# ======================= TESTS FOR REACTIONPARSER OBJECT ====================== #
+
+def test_ReactionParser_file_not_found():
+    """Test when xml file is nonexistent"""
+    with pytest.raises(IOError):
+        parser = ReactionParser("no_such_file")
+
+def test_ReactionParser_species():
+    """Test when reaction rate coefficient is modified
+    Arrhenius but R is changed by user"""
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    assert parser.get_species() == ({'H': None,'O': None, 'OH': None,
+                                    'H2': None, 'H2O': None, 'O2': None})
+    
+def test_ReactionParser_type():
+    """Test get_rxn_type() for an elementary reaction."""
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert parser.reaction_list[0].rxn_type == 'Elementary'
+    
+def test_ReactionParser_rate_coeffs_components():
+    """Test get_rate_coeffs_components for reaction 1."""
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert (parser.reaction_list[0].rate_coeffs_components ==
+            {'A': 35200000000.0, 'E': 71400.0})
+    
+def test_ReactionParser_is_reversible():
+    """Test get_is_reversible for reaction irreversible reaction."""
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert parser.reaction_list[0].is_reversible == False
+
+def test_ReactionParser_rxn_equation():
+    """Test get_rxn_equation for reaction 1."""
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert parser.reaction_list[0].rxn_equation == 'H + O2 =] OH + O'
+    
+def test_ReactionParser_reactant_stoich_coeffs():
+    """Test get_reactant_stoich_coeffs for reaction 1."""
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert (parser.reaction_list[0].reactant_stoich_coeffs ==
+            {'H': 1, 'H2': 0, 'H2O': 0, 'O': 0, 'O2': 1, 'OH': 0})
+
+def test_ReactionParser_product_stoich_coeffs():
+    """Test get_product_stoich_coeffs for reaction 1."""
+    xml_filename = "rxns.xml"
+    parser = ReactionParser(xml_filename)
+    parser()
+    assert (parser.reaction_list[0].product_stoich_coeffs ==
+            {'H': 0, 'H2': 0, 'H2O': 0, 'O': 1, 'O2': 0, 'OH': 1})
+
+def test_arr_A():
+    """Test when parameter A (for computing
+    Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
+        xml_filename = "A_arr.xml"
+        parser = ReactionParser(xml_filename)
+        parser()
+        
+def test_arr_E():
+    """Test when parameter E (for computing
+    Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
+        xml_filename = "E_arr.xml"
+        parser = ReactionParser(xml_filename)
+        parser()
+
+def test_mod_arr_A():
+    """Test when parameter A (for computing
+    modified Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
+        xml_filename = "A_mod_arr.xml"
+        parser = ReactionParser(xml_filename)
+        parser()
+
+def test_mod_arr_b():
+    """Test when parameter b (for computing
+    modified Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
+        xml_filename = "b_mod_arr.xml"
+        parser = ReactionParser(xml_filename)
+        parser()
+        
+def test_mod_arr_E():
+    """Test when parameter E (for computing
+    modified Arrrhenius reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
+        xml_filename = "E_mod_arr.xml"
+        parser = ReactionParser(xml_filename)
+        parser()
+        
+def test_const_k():
+    """Test when k (for computing
+    constant reaction rate coeff)
+    is missing from xml file"""
+    with pytest.raises(ValueError):
+        xml_filename = "k_const.xml"
+        parser = ReactionParser(xml_filename)
+        parser()
+
+
+
+# ======================= TESTS FOR REACTIONSYSTEM OBJECT ====================== #
+
+@pytest.fixture
+def test_base_reaction_system():
+    """Returns a valid reaction system"""
+    rxn1 = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="H2 + OH =] H2O + H",
+                    species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'H2' :1, 'OH':1},
+                    product_stoich_coeffs={'H2O' :1, 'H':1})
+    rxn2 = Reaction(rxn_type="Elementary",
+                    is_reversible=False,
+                    rxn_equation="H2 + OH =] H2O + H",
+                    species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+                    rate_coeffs_components={'A': 10, 'E': 100},
+                    reactant_stoich_coeffs={'H2' :1, 'OH':1},
+                    product_stoich_coeffs={'H2O' :1, 'H':1})
+    reaction_list = [rxn1, rxn2]
+    return ReactionSystem(reaction_list)
+
+def test_set_valid_temperature(test_base_reaction_system):
+    """Tests setting valid temperature to reaction system."""
+    test_sys = test_base_reaction_system
+    test_sys.set_temperature(100)
+    for rxnObj in test_sys.reaction_list:
+        assert rxnObj.temperature == 100
+
+def test_set_invalid_temperature(test_base_reaction_system):
+    """Tests setting valid temperature to reaction system."""
+    test_sys = test_base_reaction_system
+    with pytest.raises(ValueError):
+        test_sys.set_temperature(-100)
+
+def test_set_valid_concentrations(test_base_reaction_system):
+    """Tests setting valid concentrations to reaction system."""
+    test_sys = test_base_reaction_system
+    X = {'H': 1, 'OH': 1, 'H2O': 1, 'O':1, 'H2O':1, 'O2':1}
+    test_sys.set_concentrations(X)
+    for rxnObj in test_sys.reaction_list:
+        list_concentrations = rxnObj.order_dictionaries(X)
+        assert (list_concentrations == rxnObj.concentrations).all()
+
+# # TODO!!!!!!!!!!!!!
+# def test_set_invalid_concentrations(test_base_reaction_system):
+#     """Tests for when non-positive values for concentrations entered.""" 
+#     pass
+
+# def test_set_incomplete_concentrations(test_base_reaction_system):
+#     """Tests for when not all species given concentration"""
+#     pass
+
+# def test_set_wrong_concentrations(test_base_reaction_system):
+#     """Tests for when wrong species (species not in reaction system)
+#     assigned concentrations."""
+#     pass
+
+
+
+
+# ======================= TESTS FOR REACTION OBJECT ====================== #
 
 @pytest.fixture
 def test_base_reaction():
@@ -92,105 +269,122 @@ def test_Reaction_set_neg_concentrations(test_base_reaction):
     with pytest.raises(ValueError):
         test_base_reaction.set_concentrations({'H2':1, 'OH':2, 'H2O':3, 'H':-4})
 
-def test_Reaction_no_set_concentrations(test_base_reaction):
-    """Test setting reaction with negative concentrations"""
-    with pytest.raises(ValueError):
-        test_base_reaction.compute_progress_rate()
+# def test_Reaction_no_set_concentrations(test_base_reaction):
+#     """Test setting reaction with negative concentrations"""
+#     with pytest.raises(ValueError):
+#         test_base_reaction.compute_progress_rate()
 
-def test_Reaction_compute_reaction_rate_coeff_constant(test_base_reaction):
-    """Test reaction constant reaction rate coefficient"""
-    k = test_base_reaction.compute_reaction_rate_coeff()
-    assert k == 10
+# def test_Reaction_compute_reaction_rate_coeff_constant(test_base_reaction):
+#     """Test reaction constant reaction rate coefficient"""
+#     k = test_base_reaction.compute_reaction_rate_coeff()
+#     assert k == 10
 
-def test_Reaction_compute_reaction_rate_coeff_invalid_constant():
-    """Test reaction constant reaction rate coefficient but invalid constant (non-positive)"""
-    test_rxn = Reaction(rxn_type="Elementary",
-                        is_reversible=False,
-                        rxn_equation="H2 + OH =] H2O + H",
-                        species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
-                        rate_coeffs_components={'k': -10},
-                        reactant_stoich_coeffs={'H2' :1, 'OH':1},
-                        product_stoich_coeffs={'H2O' :1, 'H':1})
-    with pytest.raises(ValueError):
-        test_rxn.compute_reaction_rate_coeff()
+# def test_Reaction_compute_reaction_rate_coeff_invalid_constant():
+#     """Test reaction constant reaction rate coefficient but invalid constant (non-positive)"""
+#     test_rxn = Reaction(rxn_type="Elementary",
+#                         is_reversible=False,
+#                         rxn_equation="H2 + OH =] H2O + H",
+#                         species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+#                         rate_coeffs_components={'k': -10},
+#                         reactant_stoich_coeffs={'H2' :1, 'OH':1},
+#                         product_stoich_coeffs={'H2O' :1, 'H':1})
+#     with pytest.raises(ValueError):
+#         test_rxn.compute_reaction_rate_coeff()
 
-def test_Reaction_compute_reaction_rate_coeff_arrhenius(test_reaction_arrhenius):
-    """Test reaction with arrhenius rate coefficient."""
-    # when T not inputed by user
-    try:
-        k = test_reaction_arrhenius.compute_reaction_rate_coeff() 
-    except ValueError:
-        test_reaction_arrhenius.set_temperature(10)
-        k = test_reaction_arrhenius.compute_reaction_rate_coeff()
-    assert numpy.isclose(k, 3.0035490889639616)
+# def test_Reaction_compute_reaction_rate_coeff_arrhenius(test_reaction_arrhenius):
+#     """Test reaction with arrhenius rate coefficient."""
+#     # when T not inputed by user
+#     try:
+#         k = test_reaction_arrhenius.compute_reaction_rate_coeff() 
+#     except ValueError:
+#         test_reaction_arrhenius.set_temperature(10)
+#         k = test_reaction_arrhenius.compute_reaction_rate_coeff()
+#     assert numpy.isclose(k, 3.0035490889639616)
 
-def test_Reaction_compute_reaction_rate_coeff_mod_arrhenius(test_reaction_modified_arr):
-    """Test reaction with modified arrhenius rate coefficient."""
-    # when T not inputed by user
-    try:
-        k = test_reaction_modified_arr.compute_reaction_rate_coeff() 
-    except ValueError:
-        test_reaction_modified_arr.set_temperature(10)
-        k = test_reaction_modified_arr.compute_reaction_rate_coeff()
-    assert numpy.isclose(k, 9.4980561852498244)
+# def test_Reaction_compute_reaction_rate_coeff_mod_arrhenius(test_reaction_modified_arr):
+#     """Test reaction with modified arrhenius rate coefficient."""
+#     # when T not inputed by user
+#     try:
+#         k = test_reaction_modified_arr.compute_reaction_rate_coeff() 
+#     except ValueError:
+#         test_reaction_modified_arr.set_temperature(10)
+#         k = test_reaction_modified_arr.compute_reaction_rate_coeff()
+#     assert numpy.isclose(k, 9.4980561852498244)
 
-def test_Reaction_compute_progress_rate():
-    """Test compute_progress_rate() for an elementary, irreversible reaction."""
-    test = Reaction(rxn_type="Elementary",
-                    is_reversible=False,
-                    rxn_equation="A + B =] C",
-                    species_list=['A', 'B', 'C'],
-                    rate_coeffs_components={'k': 10},
-                    reactant_stoich_coeffs={'A' :2, 'B':1},
-                    product_stoich_coeffs={'C': 1})
+# def test_Reaction_compute_progress_rate():
+#     """Test compute_progress_rate() for an elementary, irreversible reaction."""
+#     test = Reaction(rxn_type="Elementary",
+#                     is_reversible=False,
+#                     rxn_equation="A + B =] C",
+#                     species_list=['A', 'B', 'C'],
+#                     rate_coeffs_components={'k': 10},
+#                     reactant_stoich_coeffs={'A' :2, 'B':1},
+#                     product_stoich_coeffs={'C': 1})
 
-    test.set_concentrations({'A': 1, 'B':2, 'C':3})
-    w = test.compute_progress_rate()
-    expected = numpy.array([ 20.])
-    assert w == expected
+#     test.set_concentrations({'A': 1, 'B':2, 'C':3})
+#     w = test.compute_progress_rate()
+#     expected = numpy.array([ 20.])
+#     assert w == expected
 
-def test_Reaction_compute_reaction_rate(test_base_reaction):
-    """Test compute_reaction_rate() for an elementary, irreversible reaction."""
-    test = Reaction(rxn_type="Elementary",
-                    is_reversible=False,
-                    rxn_equation="A + B =] C",
-                    species_list=['A', 'B', 'C'],
-                    rate_coeffs_components={'k': 10},
-                    reactant_stoich_coeffs={'A' :2, 'B':1},
-                    product_stoich_coeffs={'C': 1})
+# def test_Reaction_compute_reaction_rate(test_base_reaction):
+#     """Test compute_reaction_rate() for an elementary, irreversible reaction."""
+#     test = Reaction(rxn_type="Elementary",
+#                     is_reversible=False,
+#                     rxn_equation="A + B =] C",
+#                     species_list=['A', 'B', 'C'],
+#                     rate_coeffs_components={'k': 10},
+#                     reactant_stoich_coeffs={'A' :2, 'B':1},
+#                     product_stoich_coeffs={'C': 1})
 
-    test.set_concentrations({'A': 1, 'B':2, 'C':3})
-    rxnrate = test.compute_reaction_rate()
-    expected = -40.0
-    assert rxnrate == expected
+#     test.set_concentrations({'A': 1, 'B':2, 'C':3})
+#     rxnrate = test.compute_reaction_rate()
+#     expected = -40.0
+#     assert rxnrate == expected
 
-def test_Reaction_compute_reaction_rate_neg_reactant_stoich_coeffs(test_base_reaction):
-    """Test compute_reaction_rate() for an elementary, irreversible reaction."""
-    test = Reaction(rxn_type="Elementary",
-                    is_reversible=False,
-                    rxn_equation="A + B =] C",
-                    species_list=['A', 'B', 'C'],
-                    rate_coeffs_components={'k': 10},
-                    reactant_stoich_coeffs={'A' :2, 'B':-1},
-                    product_stoich_coeffs={'C': 1})
+# def test_Reaction_compute_reaction_rate_neg_reactant_stoich_coeffs(test_base_reaction):
+#     """Test compute_reaction_rate() for an elementary, irreversible reaction."""
+#     test = Reaction(rxn_type="Elementary",
+#                     is_reversible=False,
+#                     rxn_equation="A + B =] C",
+#                     species_list=['A', 'B', 'C'],
+#                     rate_coeffs_components={'k': 10},
+#                     reactant_stoich_coeffs={'A' :2, 'B':-1},
+#                     product_stoich_coeffs={'C': 1})
 
-    test.set_concentrations({'A': 1, 'B':2, 'C':3})
-    with pytest.raises(ValueError):
-        rxnrate = test.compute_reaction_rate()
+#     test.set_concentrations({'A': 1, 'B':2, 'C':3})
+#     with pytest.raises(ValueError):
+#         rxnrate = test.compute_reaction_rate()
     
-def test_Reaction_compute_reaction_rate_neg_product_stoich_coeffs(test_base_reaction):
-    """Test compute_reaction_rate() for an elementary, irreversible reaction."""
-    test = Reaction(rxn_type="Elementary",
-                    is_reversible=False,
-                    rxn_equation="A + B =] C",
-                    species_list=['A', 'B', 'C'],
-                    rate_coeffs_components={'k': 10},
-                    reactant_stoich_coeffs={'A' :2, 'B':1},
-                    product_stoich_coeffs={'C': -1})
+# def test_Reaction_compute_reaction_rate_neg_product_stoich_coeffs(test_base_reaction):
+#     """Test compute_reaction_rate() for an elementary, irreversible reaction."""
+#     test = Reaction(rxn_type="Elementary",
+#                     is_reversible=False,
+#                     rxn_equation="A + B =] C",
+#                     species_list=['A', 'B', 'C'],
+#                     rate_coeffs_components={'k': 10},
+#                     reactant_stoich_coeffs={'A' :2, 'B':1},
+#                     product_stoich_coeffs={'C': -1})
+#     test.set_concentrations({'A': 1, 'B':2, 'C':3})
+#     with pytest.raises(ValueError):
+#         rxnrate = test.compute_reaction_rate()
 
-    test.set_concentrations({'A': 1, 'B':2, 'C':3})
-    with pytest.raises(ValueError):
-        rxnrate = test.compute_reaction_rate()
+
+
+# ======================= TESTS FOR IRREVERSIBLE REACTION ====================== #
+
+
+
+
+
+
+# ======================= TESTS FOR REVERSIBLE REACTION ====================== #
+
+
+
+
+
+# ======================= TESTS FOR REACTIONCOEFF ====================== #
+
 
 def test_ReactionCoeff_constant():
     """Test when reaction rate coefficient is constant"""
@@ -322,158 +516,21 @@ def test_ReactionCoeff_mod_arrhenius_changing_R():
 
 
 
+# def test_overall_workflow_elementary_rxn():
+#     """Test overall workflow (by checking final reaction rate)
+#     for an irreversible elementary reaction."""
+#     xml_filename = "rxns.xml"
+#     parser = ReactionParser(xml_filename)
+#     parser()
+#     rxn1 = parser.reaction_list[0]
+#     rxn1.set_concentrations({'H':1, 'O2':2, 'OH':0, 'O':0, 'H2O':0, 'H2':0})
+#     rxn1.set_temperature(100)
+#     rxnrate = rxn1.compute_reaction_rate()
+#     expected = 0.0
+#     assert rxnrate == expected
 
 
-
-
-
-####### TESTS FOR REACTIONPARSER OBJECT ###############
-
-
-
-def test_ReactionParser_file_not_found():
-    """Test when xml file is nonexistent"""
-    with pytest.raises(IOError):
-        parser = ReactionParser("no_such_file")
-
-def test_ReactionParser_species():
-    """Test when reaction rate coefficient is modified
-    Arrhenius but R is changed by user"""
-    xml_filename = "rxns.xml"
-    parser = ReactionParser(xml_filename)
-    parser()
-    assert parser.species == ({'H': None,'O': None, 'OH': None,
-                              'H2': None, 'H2O': None, 'O2': None})
-    
-def test_ReactionParser_type():
-    """Test get_rxn_type() for an elementary reaction."""
-    xml_filename = "rxns.xml"
-    parser = ReactionParser(xml_filename)
-    parser()
-    assert parser.reaction_list[0].rxn_type == 'Elementary'
-    
-def test_ReactionParser_rate_coeffs_components():
-    """Test get_rate_coeffs_components for reaction 1."""
-    xml_filename = "rxns.xml"
-    parser = ReactionParser(xml_filename)
-    parser()
-    assert (parser.reaction_list[0].rate_coeffs_components ==
-            {'A': 35200000000.0, 'E': 71400.0})
-    
-def test_ReactionParser_is_reversible():
-    """Test get_is_reversible for reaction irreversible reaction."""
-    xml_filename = "rxns.xml"
-    parser = ReactionParser(xml_filename)
-    parser()
-    assert parser.reaction_list[0].is_reversible == False
-
-def test_ReactionParser_rxn_equation():
-    """Test get_rxn_equation for reaction 1."""
-    xml_filename = "rxns.xml"
-    parser = ReactionParser(xml_filename)
-    parser()
-    assert parser.reaction_list[0].rxn_equation == 'H + O2 =] OH + O'
-    
-def test_ReactionParser_reactant_stoich_coeffs():
-    """Test get_reactant_stoich_coeffs for reaction 1."""
-    xml_filename = "rxns.xml"
-    parser = ReactionParser(xml_filename)
-    parser()
-    assert (parser.reaction_list[0].reactant_stoich_coeffs ==
-            {'H': 1, 'H2': 0, 'H2O': 0, 'O': 0, 'O2': 1, 'OH': 0})
-
-def test_ReactionParser_product_stoich_coeffs():
-    """Test get_product_stoich_coeffs for reaction 1."""
-    xml_filename = "rxns.xml"
-    parser = ReactionParser(xml_filename)
-    parser()
-    assert (parser.reaction_list[0].product_stoich_coeffs ==
-            {'H': 0, 'H2': 0, 'H2O': 0, 'O': 1, 'O2': 0, 'OH': 1})
-  
-# def test_unrecognizable_rxn():
-#     '''TEMPORARY'''
-#     """Test parser for reversible reaction. before milestone 2"""
-#     try:
-#         xml_filename = "unrecognized_rxn.xml"
-#         parser = ReactionParser(xml_filename)
-#         parser()
-#     except NotImplementedError as err:
-#         assert(type(err) == NotImplementedError)
-
-def test_arr_A():
-    """Test when parameter A (for computing
-    Arrrhenius reaction rate coeff)
-    is missing from xml file"""
-    with pytest.raises(ValueError):
-        xml_filename = "A_arr.xml"
-        parser = ReactionParser(xml_filename)
-        parser()
-        
-def test_arr_E():
-    """Test when parameter E (for computing
-    Arrrhenius reaction rate coeff)
-    is missing from xml file"""
-    with pytest.raises(ValueError):
-        xml_filename = "E_arr.xml"
-        parser = ReactionParser(xml_filename)
-        parser()
-
-def test_mod_arr_A():
-    """Test when parameter A (for computing
-    modified Arrrhenius reaction rate coeff)
-    is missing from xml file"""
-    with pytest.raises(ValueError):
-        xml_filename = "A_mod_arr.xml"
-        parser = ReactionParser(xml_filename)
-        parser()
-
-def test_mod_arr_b():
-    """Test when parameter b (for computing
-    modified Arrrhenius reaction rate coeff)
-    is missing from xml file"""
-    with pytest.raises(ValueError):
-        xml_filename = "b_mod_arr.xml"
-        parser = ReactionParser(xml_filename)
-        parser()
-        
-def test_mod_arr_E():
-    """Test when parameter E (for computing
-    modified Arrrhenius reaction rate coeff)
-    is missing from xml file"""
-    with pytest.raises(ValueError):
-        xml_filename = "E_mod_arr.xml"
-        parser = ReactionParser(xml_filename)
-        parser()
-        
-def test_const_k():
-    """Test when k (for computing
-    constant reaction rate coeff)
-    is missing from xml file"""
-    with pytest.raises(ValueError):
-        xml_filename = "k_const.xml"
-        parser = ReactionParser(xml_filename)
-        parser()
-
-
-
-
-
-
-def test_overall_workflow_elementary_rxn():
-    """Test overall workflow (by checking final reaction rate)
-    for an irreversible elementary reaction."""
-    xml_filename = "rxns.xml"
-    parser = ReactionParser(xml_filename)
-    parser()
-    rxn1 = parser.reaction_list[0]
-    rxn1.set_concentrations({'H':1, 'O2':2, 'OH':0, 'O':0, 'H2O':0, 'H2':0})
-    rxn1.set_temperature(100)
-    rxnrate = rxn1.compute_reaction_rate()
-    expected = 0.0
-    assert rxnrate == expected
-
-
-# TODO: Add test using xml file with a set of reactions that David gave us!
+# # TODO: Add test using xml file with a set of reactions that David gave us!
 
 
 
