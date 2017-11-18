@@ -35,7 +35,7 @@ class ReactionSystem(object):
         if temp <= 0:
             raise ValueError("Temperature has to be a positive value!")
 
-        self.temperature = temperature
+        self.temp = temperature
         self.NASA_matrix = self.get_nasa_matrix(NASA_poly_coefs)
 
         self.involved_species = reaction_list[0].species_list
