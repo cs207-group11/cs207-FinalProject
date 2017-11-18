@@ -114,10 +114,6 @@ class ReactionSystem(object):
                 NASA.append(nasa["high"])
         return numpy.array(NASA)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
 
 class ReactionError(Exception):
     pass
@@ -685,10 +681,7 @@ class ReactionCoeff(object):
 
 class BackwardCoeff():
     """Methods for calculating the backward reaction rate.
-<<<<<<< HEAD
-
-=======
->>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
+    
     Cp_over_R: Returns specific heat of each specie given by
                the NASA polynomials.
     H_over_RT:  Returns the enthalpy of each specie given by
