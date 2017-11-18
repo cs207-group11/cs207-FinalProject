@@ -115,7 +115,6 @@ class ReactionSystem(object):
         return numpy.array(NASA)
 
 
-
 class ReactionError(Exception):
     pass
 
@@ -690,6 +689,7 @@ class BackwardCoeff():
               the NASA polynomials.
     backward_coeffs:  Returns the backward reaction rate
                       coefficient for reach reaction.
+
     Please see the notes in each routine for clarifications and
     warnings.  You will need to customize these methods (and
     likely the entire class) to suit your own code base.
@@ -756,7 +756,6 @@ class BackwardCoeff():
         kb = fact ** self.gamma * numpy.exp(delta_G_over_RT)
 
         return kf / kb
-
 
 # if __name__ == "__main__":
 

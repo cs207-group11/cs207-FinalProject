@@ -11,14 +11,15 @@ import xml.etree.ElementTree as ET
 
 class ReactionParser():
     """Class for parsing input xml file describing reactions"""
+
     def __init__(self, xml_filename):
         """Initializes ReactionParser
-        
+
         INPUTS:
         -------
         xml_filename : str
             filename of input xml file
-        
+
         ATTRIBUTES:
         -----------
         reaction_list : list
@@ -28,6 +29,7 @@ class ReactionParser():
         ------
         POST:
             - Raises IOError if inputed xml file not found
+
         """
         if os.path.isfile(xml_filename):
             self.xml_filename = xml_filename
@@ -35,7 +37,7 @@ class ReactionParser():
             self.rxns = tree.getroot()
         else:
             raise IOError("Reaction (xml) file not found!")
-        
+
         self.reaction_list = []
         self.get_species()
         self.get_NASA_poly_coefs()
@@ -50,6 +52,7 @@ class ReactionParser():
                 in the form: key = species name, value = None,
                 value will be filled after we obtain the concentration from user.
         """
+
         phase = self.rxns.findall('phase')
         species_list = []
         for phase in self.rxns.findall('phase'):
@@ -61,20 +64,24 @@ class ReactionParser():
         return self.species
 
     def get_rxn_type(self, reaction):
+
         """Returns reaction type
 
         INPUTS:
         -------
         reaction: parsed xml file which contains information about reactions
 
+
         RETURNS:
         --------
+
         rxn_type: a string describe reaction's type, such as "elementary".
         """
         rxn_type = reaction.get('type')
         return rxn_type
 
     def get_is_reversible(self, reaction):
+
         """Returns information about whether the reaction is reversible
         
         INPUTS:
@@ -85,11 +92,13 @@ class ReactionParser():
         --------
         is_reversible: a boolean, True = reversible and False = irreversible
         """
+
         if reaction.get('reversible') == "yes":
             is_reversible = True
         else:
             is_reversible = False
         return is_reversible
+
 
     def get_rxn_equation(self,reaction):
         """Returns reaction equation
@@ -120,6 +129,7 @@ class ReactionParser():
         for coef in reaction.findall('rateCoeff'):
 
             # Arrhenius-type
+
             if coef.find('Arrhenius') is not None:
                 for arr in coef.findall('Arrhenius'):
                     if arr.find('A') is None or arr.find('A').text is None:
@@ -136,6 +146,7 @@ class ReactionParser():
                 }
 
             # modified Arrhenius-type
+
             if coef.find('modifiedArrhenius') is not None:
                 for arr in coef.findall('modifiedArrhenius'):
                     if arr.find('A') is None or arr.find('A').text is None:
@@ -151,6 +162,7 @@ class ReactionParser():
                     else:
                         E = float(arr.find('E').text)
                 rate_coeffs_components = {
+
                     "A":A,
                     "b":b,
                     "E":E
