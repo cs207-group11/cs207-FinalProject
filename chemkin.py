@@ -35,14 +35,14 @@ class ReactionSystem(object):
         if temp <= 0:
             raise ValueError("Temperature has to be a positive value!")
 
-        self.temp = temperature
+        self.temperature = temp
         self.NASA_matrix = self.get_nasa_matrix(NASA_poly_coefs)
 
         self.involved_species = reaction_list[0].species_list
 
         for r in self.reaction_list:
-            r.set_concentrations(concentration)
-            r.set_temperature(temp)
+            r.set_concentrations(concentrations)
+            r.set_temperature(self.temperature)
             if isinstance(r, ReversibleReaction):
                 r.set_NASA_poly_coefs(self.NASA_matrix)
 
