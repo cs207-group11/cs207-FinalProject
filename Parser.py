@@ -14,7 +14,11 @@ class ReactionParser():
 
     def __init__(self, xml_filename):
         """Initializes ReactionParser
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
         INPUTS:
         -------
         xml_filename : str
@@ -29,6 +33,10 @@ class ReactionParser():
         ------
         POST:
             - Raises IOError if inputed xml file not found
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
         """
         if os.path.isfile(xml_filename):
             self.xml_filename = xml_filename
@@ -51,6 +59,10 @@ class ReactionParser():
                 in the form: key = species name, value = None,
                 value will be filled after we obtain the concentration from user.
         """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
         phase = self.rxns.findall('phase')
         species_list = []
         for phase in self.rxns.findall('phase'):
@@ -62,20 +74,35 @@ class ReactionParser():
         return self.species
 
     def get_rxn_type(self, reaction):
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
         """Returns reaction type
 
         INPUTS:
         -------
         reaction: parsed xml file which contains information about reactions
 
+<<<<<<< HEAD
         RETURNS:
         --------
+=======
+
+        RETURNS:
+        --------
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
         rxn_type: a string describe reaction's type, such as "elementary".
         """
         rxn_type = reaction.get('type')
         return rxn_type
 
     def get_is_reversible(self, reaction):
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
         """Returns information about whether the reaction is reversible
         
         INPUTS:
@@ -86,12 +113,20 @@ class ReactionParser():
         --------
         is_reversible: a boolean, True = reversible and False = irreversible
         """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
         if reaction.get('reversible') == "yes":
             is_reversible = True
         else:
             is_reversible = False
         return is_reversible
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
     def get_rxn_equation(self,reaction):
         """Returns reaction equation
         
@@ -121,6 +156,10 @@ class ReactionParser():
         for coef in reaction.findall('rateCoeff'):
 
             # Arrhenius-type
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
             if coef.find('Arrhenius') is not None:
                 for arr in coef.findall('Arrhenius'):
                     if arr.find('A') is None or arr.find('A').text is None:
@@ -137,6 +176,10 @@ class ReactionParser():
                 }
 
             # modified Arrhenius-type
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
             if coef.find('modifiedArrhenius') is not None:
                 for arr in coef.findall('modifiedArrhenius'):
                     if arr.find('A') is None or arr.find('A').text is None:
@@ -152,6 +195,10 @@ class ReactionParser():
                     else:
                         E = float(arr.find('E').text)
                 rate_coeffs_components = {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
                     "A":A,
                     "b":b,
                     "E":E
@@ -307,4 +354,7 @@ class ReactionParser():
                 # Unhandled reaction case
                 else:
                     raise NotImplementedError("This type of reaction has not been implemented yet!")
+<<<<<<< HEAD
 
+=======
+>>>>>>> 935e1c10014a64ad5f1d498630766674bad1074d
