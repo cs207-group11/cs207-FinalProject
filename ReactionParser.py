@@ -1,4 +1,4 @@
-from rxns import *
+from chemkin import *
 import sqlite3
 import numpy as np
 import os.path
@@ -32,16 +32,10 @@ class ReactionParser():
 #             raise IOError("Reaction (xml) file not found!")
         
         self.reaction_list = []
-
-    def __call__(self):
-        """Parser all information for all reactions by calling self.append_rxn function
-        INPUTS
-        ======
-        self : contains xml file name: self.xml_filename 
-                which is our target file to parser
-        """
-        self.append_rxn()
-    
+        self.get_species()
+        self.get_NASA_poly_coefs()
+        self.get_reaction_list()
+       
     def get_species(self):
         """get reaction species
         INPUTS:
@@ -226,7 +220,7 @@ class ReactionParser():
             WHERE SPECIES_NAME = ?''',(species_name,))
         return cursor.fetchone()[0]
 
-    def get_NASA_poly_coef(self):
+    def get_NASA_poly_coefs(self):
         """Parser all information for all reactions by calling self.append_rxn function
         INPUTS
         ======
@@ -244,9 +238,10 @@ class ReactionParser():
             coef['low'] = self.get_coeffs(species_name,'low')
             coef['high'] = self.get_coeffs(species_name,'high')
             NASA_poly_coefs.append(coef)
-        return NASA_poly_coefs
+        self.NASA_poly_coefs = NASA_poly_coefs
+        return self.NASA_poly_coefs
     
-    def append_rxn(self):
+    def get_reaction_list(self):
         """loop through the parsed xml file, then loop through each reaction and get their information
             such as reaction type, create a Reaction object for each reaction. Append each Reaction 
             object to self.reaction_list
@@ -254,9 +249,6 @@ class ReactionParser():
         -------
         self: parsed xml file
         """
-        self.get_species()
-        NASA_poly_coefs = self.get_NASA_poly_coef()
-
         for reactionData in self.rxns.findall('reactionData'):
             for reaction in reactionData.findall('reaction'):
                 # get species
@@ -282,7 +274,5 @@ class ReactionParser():
                 elif is_reversible == True and rxn_type == "Elementary":
                     rxn = ReversibleReaction(rxn_type, is_reversible, rxn_equation,
                                          self.species, rate_coeffs_components,
-                                         reactant_stoich_coeffs, product_stoich_coeffs,NASA_poly_coefs)
+                                         reactant_stoich_coeffs, product_stoich_coeffs)
                     self.reaction_list.append(rxn)
-                else:
-                    raise NotImplementedError("This type of reaction has not been implemented yet!")
