@@ -4,76 +4,62 @@ import numpy
 import pytest
 import warnings
 from chemkin import *
+from Parser import ReactionParser
 
 # Treat warnings like errors (for testing purposes)
 warnings.simplefilter("error")
 
 
-# # ======================= TESTS FOR REACTIONSYSTEM OBJECT ====================== #
+# ======================= TESTS FOR REACTIONSYSTEM OBJECT ====================== #
 
-# @pytest.fixture
-# def test_base_reaction_system():
-#     """Returns a valid reaction system"""
-#     rxn1 = Reaction(rxn_type="Elementary",
-#                     is_reversible=False,
-#                     rxn_equation="H2 + OH =] H2O + H",
-#                     species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
-#                     rate_coeffs_components={'k': 10},
-#                     reactant_stoich_coeffs={'H2' :1, 'OH':1},
-#                     product_stoich_coeffs={'H2O' :1, 'H':1})
-#     rxn2 = Reaction(rxn_type="Elementary",
-#                     is_reversible=True,
-#                     rxn_equation="O2 + H =] H2O",
-#                     species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
-#                     rate_coeffs_components={'k': 10},
-#                     reactant_stoich_coeffs={'O2' :1, 'H':1},
-#                     product_stoich_coeffs={'H2O' :1})
-#     reaction_list = [rxn1, rxn2]
-#     return ReactionSystem(reaction_list)
+@pytest.fixture
+def test_base_reaction_system():
+    """Returns a valid reaction system"""
+    # rxn1 = Reaction(rxn_type="Elementary",
+    #                 is_reversible=False,
+    #                 rxn_equation="H2 + OH =] H2O + H",
+    #                 species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+    #                 rate_coeffs_components={'k': 10},
+    #                 reactant_stoich_coeffs={'H2' :1, 'OH':1},
+    #                 product_stoich_coeffs={'H2O' :1, 'H':1})
+    # rxn2 = Reaction(rxn_type="Elementary",
+    #                 is_reversible=True,
+    #                 rxn_equation="O2 + H =] H2O",
+    #                 species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
+    #                 rate_coeffs_components={'k': 10},
+    #                 reactant_stoich_coeffs={'O2' :1, 'H':1},
+    #                 product_stoich_coeffs={'H2O' :1})
+    # reaction_list = [rxn1, rxn2]
+    # return ReactionSystem(reaction_list)
 
-# def test_set_valid_temperature(test_base_reaction_system):
-#     """Tests setting valid temperature to reaction system."""
-#     test_sys = test_base_reaction_system
-#     test_sys.set_temperature(100)
-#     for rxnObj in test_sys.reaction_list:
-#         assert rxnObj.temperature == 100
+    xml_filename = "rxns_mixed.xml"
+    parser = ReactionParser(xml_filename)
+    reaction_list = parser.get_reaction_list()
+    concentrations = {'H':1, 'O2':2, 'OH':1, 'O':4, 'H2O':0, 'H2':1}
+    temp = 100
+    rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
+    return rxnsys
 
-# def test_set_invalid_temperature(test_base_reaction_system):
-#     """Tests setting valid temperature to reaction system."""
-#     test_sys = test_base_reaction_system
-#     with pytest.raises(ValueError):
-#         test_sys.set_temperature(-100)
+def test_rxn_sys_invalid_temperature():
+    """Tests setting up reaction system with invalid temperatures."""
+    xml_filename = "rxns_mixed.xml"
+    parser = ReactionParser(xml_filename)
+    reaction_list = parser.get_reaction_list()
+    concentrations = {'H':1, 'O2':2, 'OH':1, 'O':4, 'H2O':0, 'H2':1}
+    temp = 0
+    with pytest.raises(ValueError):
+        rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
+    temp = -100
+    with pytest.raises(ValueError):
+        rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
 
-# def test_set_valid_concentrations(test_base_reaction_system):
-#     """Tests setting valid concentrations to reaction system."""
-#     test_sys = test_base_reaction_system
-#     X = {'H': 1, 'OH': 1, 'H2': 1, 'O':1, 'H2O':1, 'O2': 1}
-#     test_sys.set_concentrations(X)
-#     for rxnObj in test_sys.reaction_list:
-#         list_concentrations = rxnObj.order_dictionaries(X)
-#         assert (list_concentrations == rxnObj.concentrations).all()
 
-# def test_set_invalid_concentrations(test_base_reaction_system):
-#     """Tests for when non-positive values for concentrations entered.""" 
-#     test_sys = test_base_reaction_system
-#     X = {'H': 1, 'OH': -1, 'H2': 1, 'O':1, 'H2O':1, 'O2': 1}
-#     with pytest.raises(ValueError):
-#         test_sys.set_concentrations(X)
+def test_rxn_sys_get_reaction_rate():
+    """Tests function to get reaction rate for a given system of reactions."""
+    pass
 
-# def test_set_incomplete_concentrations(test_base_reaction_system):
-#     test_sys = test_base_reaction_system
-#     X = {'H': 1, 'H2O': 1, 'O':1, 'H2O':1, 'O2': 1}
-#     with pytest.raises(ValueError):
-#         test_sys.set_concentrations(X)
-
-# def test_set_wrong_concentrations(test_base_reaction_system):
-#     """Tests for when wrong species (species not in reaction system)
-#     assigned concentrations."""
-#     test_sys = test_base_reaction_system
-#     X = {'H': 1, 'H2O': 1, 'O':1, 'H2O':1, 'O2': 1, 'A': 1}
-#     with pytest.raises(ValueError):
-#         test_sys.set_concentrations(X)
-
+# def test_rxn_sys_get_nasa_matrix():
+#     pass
 
 
 
@@ -325,6 +311,8 @@ def test_IrrevReaction_compute_reaction_rate_neg_product_stoich_coeffs(test_base
 
 
 
+
+
 # ======================= TESTS FOR REVERSIBLE REACTION ====================== #
 
 
@@ -349,6 +337,9 @@ def test_wrongly_classified_rev_rxn_nonElementary():
                                     rate_coeffs_components={'k': 10},
                                     reactant_stoich_coeffs={'H2' :1, 'OH':1},
                                     product_stoich_coeffs={'H2O' :1, 'H':1})
+
+
+
 
 
 
@@ -485,6 +476,23 @@ def test_ReactionCoeff_mod_arrhenius_changing_R():
     T = 10
     with pytest.raises(UserWarning):
         k_test = ReactionCoeff(k_parameters, T).k
+
+
+
+# ======================= TESTS FOR BACKWARDCOEFF ====================== #
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

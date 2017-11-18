@@ -45,60 +45,12 @@ class ReactionSystem(object):
             r.set_temperature(self.temperature)
             if isinstance(r, ReversibleReaction):
                 r.set_NASA_poly_coefs(self.NASA_matrix)
-
-    # def set_temperature(self, T):
-    #     """Sets temperature of the reaction system.
-
-    #     INPUTS
-    #     ------
-    #     T : float
-    #         Temperature of reaction
-
-    #     NOTES
-    #     -----
-    #     POST:
-    #         - Updates self.temperature
-    #         - Raises ValueError if inputed temperature is non-positive
-    #     """
-    #     if T <= 0:
-    #         raise ValueError("Temperature has to be a positive value!")
-        
-    #     for rxnObj in self.reaction_list:
-    #         rxnObj.set_temperature(T)
-
-    # def set_concentrations(self, X):
-    #     """Sets concentrations of the reactions.
-
-    #     INPUTS
-    #     ------
-    #     X : dict
-    #         dictionary with species and corresponding concentrations
-
-    #     NOTES
-    #     -----
-    #     POST:
-    #         - Raises ValueError if any of inputed concentrations is non-positive
-    #         - Raises ValueError if missing concentration of species involved in
-    #             system of reactions or if inputed name of species (with corresponding
-    #             concentrations) don't match name from xml file
-    #     """
-
-    #     for concentration in X.values():
-    #         if concentration < 0:
-    #             raise ValueError("You cannot have non-positive concentrations!")
-
-    #     if not (set(X.keys()) ==  set(self.involved_species)):
-    #         raise ValueError('''Inputed names of species with their concentrations 
-    #                          don't match species from xml file!''')
-
-    #     for rxnObj in self.reaction_list:
-    #         rxnObj.set_concentrations(X)
            
     def get_reaction_rate(self):
         """Fetches reaction rate for each reaction.
 
-        RETURNS
-        -------
+        RETURNS:
+        --------
         list_rxn_rates : list[float]
             list of reaction rates of reactions in the system
         """
@@ -106,6 +58,19 @@ class ReactionSystem(object):
         return numpy.sum(reaction_rate_list)
 
     def get_nasa_matrix(self, NASA_poly_coef):
+        """Computes array of NASA polynomial coefficients.
+
+        INPUTS:
+        -------
+        NASA_poly_coef : list[dict]
+            list of dictionaries of NASA polynomial coefficients
+                labeled by temperature range
+
+        RETURNS:
+        --------
+        NASA_array : numpy.ndarray
+            array of NASA polynomial coefficients for given temperature range
+        """
         NASA = []
         for nasa in NASA_poly_coef:
             if self.temperature <= nasa["Tmid"]:  # get the low temperature

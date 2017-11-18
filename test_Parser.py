@@ -104,3 +104,10 @@ def test_const_k():
     with pytest.raises(ValueError):
         xml_filename = "k_const.xml"
         parser = ReactionParser(xml_filename)
+
+def test_get_coeffs_invalid_temp_range():
+    """Test when invalid temperature range inputed"""
+    with pytest.raises(ValueError):
+        xml_filename = "rxns.xml"
+        parser = ReactionParser(xml_filename)
+        parser.get_coeffs('H', 'invalid_range')
