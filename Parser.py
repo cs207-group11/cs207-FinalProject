@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 
 class ReactionParser():
     """Class for parsing input xml file describing reactions"""
+
     def __init__(self, xml_filename):
         """Initializes ReactionParser
         
@@ -18,7 +19,7 @@ class ReactionParser():
         -------
         xml_filename : str
             filename of input xml file
-        
+
         ATTRIBUTES:
         -----------
         reaction_list : list
@@ -35,7 +36,7 @@ class ReactionParser():
             self.rxns = tree.getroot()
         else:
             raise IOError("Reaction (xml) file not found!")
-        
+
         self.reaction_list = []
         self.get_species()
         self.get_NASA_poly_coefs()
@@ -306,3 +307,4 @@ class ReactionParser():
                 # Unhandled reaction case
                 else:
                     raise NotImplementedError("This type of reaction has not been implemented yet!")
+

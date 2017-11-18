@@ -682,6 +682,7 @@ class ReactionCoeff(object):
 
 class BackwardCoeff():
     """Methods for calculating the backward reaction rate.
+
     Cp_over_R: Returns specific heat of each specie given by
                the NASA polynomials.
     H_over_RT:  Returns the enthalpy of each specie given by
@@ -690,6 +691,7 @@ class BackwardCoeff():
               the NASA polynomials.
     backward_coeffs:  Returns the backward reaction rate
                       coefficient for reach reaction.
+
     Please see the notes in each routine for clarifications and
     warnings.  You will need to customize these methods (and
     likely the entire class) to suit your own code base.
@@ -756,7 +758,6 @@ class BackwardCoeff():
         kb = fact ** self.gamma * numpy.exp(delta_G_over_RT)
 
         return kf / kb
-
 
 # if __name__ == "__main__":
 
