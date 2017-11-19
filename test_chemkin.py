@@ -37,7 +37,13 @@ def test_rxn_sys_invalid_temperature():
 
 def test_rxn_sys_get_reaction_rate_for_1_rxn(test_rxn_sys):
     """Tests function to get reaction rate for a given system of reactions (just 1 reaction)."""
-    assert test_rxn_sys.get_reaction_rate() == -15.
+    # print(test_rxn_sys.involved_species)
+    # assert test_rxn_sys.get_reaction_rate() == -15.
+    rates = test_rxn_sys.sort_reaction_rates()
+    assert rates['H'] == -30.
+    assert rates['O2'] == -15.
+    assert rates['H2O'] == 30.
+
 
 def test_rxn_sys_get_reaction_rate_for_3_rxns():
     """Tests function to get reaction rate for a given system of reactions (more than 1 reaction)."""
@@ -46,7 +52,15 @@ def test_rxn_sys_get_reaction_rate_for_3_rxns():
     temp = 10
     concentrations = {'H':1, 'O2':1, 'OH':1, 'O':1, 'H2O':1, 'H2':1}
     rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
-    assert rxnsys.get_reaction_rate() == -10.
+    rates = rxnsys.sort_reaction_rates()
+    # assert rxnsys.get_reaction_rate() == -10.
+    assert rates['H'] == -10.
+    assert rates['O2'] == -15.
+    assert rates['H2O'] == 40.
+    assert rates['H2'] == -20.
+    assert rates['O'] == -10.
+    assert rates['OH'] == 0.
+
 
 def test_rxn_sys_get_lowT_nasa_matrix(test_rxn_sys):
     """Tests function to fetch NASA coefficients of appropriate T and appropriate species in reaction."""
@@ -126,11 +140,9 @@ def test_rxn_sys_rev_reaction():
                                      0.00000000e+00, 2.54716270e+04, -4.60117608e-01])}
     rev_rxn_obj = parser.reaction_list[0]
     #assert numpy.isclose(rev_rxn_obj.NASA_poly_coefs, expected_nasa).all()
-    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs['H2O'], expected_nasa['H2O'])).all()
-    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs['O2'], expected_nasa['O2'])).all()
-    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs['H'], expected_nasa['H'])).all()
-
-
+    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs_dict['H2O'], expected_nasa['H2O'])).all()
+    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs_dict['O2'], expected_nasa['O2'])).all()
+    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs_dict['H'], expected_nasa['H'])).all()
 
 
 
@@ -434,12 +446,21 @@ def test_compute_reaction_rate_coeff_rev_rxn(test_rev_reaction):
     """Tests computing reaction rate coeff for a reversible reaction"""
     T = 400
     test_rev_reaction.set_temperature(T)
-    lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
-                            0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
-                            [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
-                            -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
-                            [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
-                            -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    lowT_nasa = {'O2': numpy.array([3.21293640e+00, 1.12748635e-03,
+                                       -5.75615047e-07, 1.31387723e-09,
+                                       -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]),
+                    'H2O': numpy.array([3.38684249e+00, 3.47498246e-03,
+                                       -6.35469633e-06, 6.96858127e-09,
+                                       -2.50658847e-12, -3.02081133e+04, 2.59023285e+00]),
+                    'H': numpy.array([2.50000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 2.54716270e+04, -4.60117608e-01])}
+    # lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+    #                         0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+    #                         [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+    #                         -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+    #                         [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+    #                         -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
     test_rev_reaction.set_NASA_poly_coefs(lowT_nasa)
     kf, kb = test_rev_reaction.compute_reaction_rate_coeff(T=T)
     assert kf == 10
@@ -449,12 +470,21 @@ def test_compute_progress_rate_rev_rxn(test_rev_reaction):
     """Tests computing reaction rate coeff for a reversible reaction"""
     T = 400
     test_rev_reaction.set_temperature(T)
-    lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
-                            0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
-                            [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
-                            -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
-                            [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
-                            -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    # lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+    #                         0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+    #                         [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+    #                         -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+    #                         [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+    #                         -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    lowT_nasa = {'O2': numpy.array([3.21293640e+00, 1.12748635e-03,
+                                       -5.75615047e-07, 1.31387723e-09,
+                                       -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]),
+                    'H2O': numpy.array([3.38684249e+00, 3.47498246e-03,
+                                       -6.35469633e-06, 6.96858127e-09,
+                                       -2.50658847e-12, -3.02081133e+04, 2.59023285e+00]),
+                    'H': numpy.array([2.50000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 2.54716270e+04, -4.60117608e-01])}
     test_rev_reaction.set_NASA_poly_coefs(lowT_nasa)
     test_rev_reaction.set_concentrations(X={'H':1, 'O2':1, 'H2O':1})
     prog_rate = test_rev_reaction.compute_progress_rate(T=T)
@@ -465,12 +495,21 @@ def test_compute_progress_rate_rev_rxn_without_setting_concen(test_rev_reaction)
     WITHOUT setting concentration"""
     T = 400
     test_rev_reaction.set_temperature(T)
-    lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
-                            0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
-                            [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
-                            -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
-                            [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
-                            -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    # lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+    #                         0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+    #                         [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+    #                         -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+    #                         [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+    #                         -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    lowT_nasa = {'O2': numpy.array([3.21293640e+00, 1.12748635e-03,
+                                       -5.75615047e-07, 1.31387723e-09,
+                                       -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]),
+                    'H2O': numpy.array([3.38684249e+00, 3.47498246e-03,
+                                       -6.35469633e-06, 6.96858127e-09,
+                                       -2.50658847e-12, -3.02081133e+04, 2.59023285e+00]),
+                    'H': numpy.array([2.50000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 2.54716270e+04, -4.60117608e-01])}
     test_rev_reaction.set_NASA_poly_coefs(lowT_nasa)
     with pytest.raises(ValueError):
         prog_rate = test_rev_reaction.compute_progress_rate(T=T)

@@ -3,6 +3,7 @@
 import numbers
 import numpy
 import warnings
+import sys
 
 
 class ReactionSystemError(Exception):
@@ -58,8 +59,19 @@ class ReactionSystem(object):
             list of reaction rates of reactions in the system
         """
         reaction_rate_list = [rxnObj.compute_reaction_rate() for rxnObj in self.reaction_list]
-        #print(reaction_rate_list)
-        return numpy.sum(reaction_rate_list)
+        reaction_rate_list = numpy.array(reaction_rate_list)
+        rxnrates = numpy.sum(reaction_rate_list, axis=0)
+        return rxnrates
+
+    def sort_reaction_rates(self):
+        rxn_rates_dict = {}
+        list_species_ordered = list(self.involved_species)
+        rxnrate = self.get_reaction_rate()
+
+        for i in range(len(rxnrate)):
+            rxn_rates_dict[list_species_ordered[i]] = rxnrate[i]
+         
+        return rxn_rates_dict
 
     def get_nasa_matrix(self, NASA_poly_coef):
         """Computes array of NASA polynomial coefficients.
@@ -80,15 +92,10 @@ class ReactionSystem(object):
         
         for specie in NASA_poly_coef:
             specie_dict = NASA_poly_coef[specie]
-
             if self.temperature <= specie_dict["Tmid"]: # get the low temperature
                 NASA[specie] = specie_dict["low"]
             else:
-                print('here')
                 NASA[specie] = specie_dict["high"]
-
-        #print(NASA)
-
         return NASA
 
 
@@ -249,6 +256,7 @@ class Reaction(object):
             list of dictionary's keys in order of species_list
         """
         index_map = {v: i for i, v in enumerate(self.species_list)}
+        #print(index_map)
         sorted_tuple_list = sorted(dictionary.items(), key=lambda pair: index_map[pair[0]])
         list_of_interest = [element[1] for element in sorted_tuple_list]
         return list_of_interest
@@ -385,6 +393,7 @@ class ReversibleReaction(Reaction):
         super(ReversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs)
 
+        self.NASA_poly_coefs_dict = None
         self.NASA_poly_coefs = None
 
         if not (rxn_type == "Elementary" and is_reversible == True):
@@ -422,9 +431,37 @@ class ReversibleReaction(Reaction):
 
     def set_NASA_poly_coefs(self, coefs):
         """Sets NASA polynomial coefficients."""
-        print(self.species_list)
-        self.NASA_poly_coefs = coefs #numpy.array(self.order_dictionaries(coefs))
+        #self.NASA_poly_coefs = coefs #numpy.array(self.order_dictionaries(coefs))
+        #print(list(self.species_list.keys()))
+        #print(self.NASA_poly_coefs)
+
+
+        index_map = {v: i for i, v in enumerate(self.species_list)}
+        sorted_tuple_list = sorted(coefs.items(), key=lambda pair: index_map[pair[0]])
+        list_of_interest = [element[1] for element in sorted_tuple_list]
+
+        list_of_interest = numpy.array(list_of_interest)
+       # print(list_of_interest)
+
+        self.NASA_poly_coefs_dict = coefs
+        self.NASA_poly_coefs = list_of_interest
+
+
+        #c = self.order_dictionaries(coefs)
+        #print(test)
         #self.NASA_poly_coefs = coefs
+        #print(coefs)
+
+        #self.NASA_poly_coefs = []
+
+        # species_list = list(self.species_list.keys())
+        # print(species_list)
+        # for i in range(len(species_list)):
+        #     self.NASA_poly_coefs.append(coefs[species_list[i]])
+
+        #self.NASA_poly_coefs = numpy.array(self.NASA_poly_coefs)
+        # print(self.NASA_poly_coefs)
+        # sys.exit()
 
     def compute_progress_rate(self, T=None):
         """Computes progress rates of reaction.
@@ -449,8 +486,7 @@ class ReversibleReaction(Reaction):
 
         #compute the forward and backward reaction coeffs
         self.compute_reaction_rate_coeff(T)
-        #print("reactant_stoich_coeffs", reactant_stoich_coeffs, "n_rxns", reactant_stoich_coeffs.shape)
-
+  
         concen_powered_j_forward = concen_array ** reactant_stoich_coeffs
         concen_powered_j_backward = concen_array ** product_stoich_coeffs
 
