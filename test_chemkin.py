@@ -51,30 +51,55 @@ def test_rxn_sys_get_reaction_rate_for_3_rxns():
 def test_rxn_sys_get_lowT_nasa_matrix(test_rxn_sys):
     """Tests function to fetch NASA coefficients of appropriate T and appropriate species in reaction."""
     # Order of low T range NASA coefficients: H, H2O, O2
-    expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
-                                0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
-                                [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
-                                -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
-                                [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
-                                -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
-    assert numpy.isclose(test_rxn_sys.NASA_matrix, expected_nasa).all()
+    expected_nasa = {'H': numpy.array([2.50000000e+00, 0.00000000e+00,
+                                       0.00000000e+00, 0.00000000e+00, 
+                                       0.00000000e+00, 2.54716270e+04, -4.60117608e-01]),
+                    'H2O': numpy.array([3.38684249e+00, 3.47498246e-03,
+                                        -6.35469633e-06, 6.96858127e-09,
+                                        -2.50658847e-12, -3.02081133e+04, 2.59023285e+00]),
+                    'O2': numpy.array([3.21293640e+00, 1.12748635e-03,
+                                       -5.75615047e-07, 1.31387723e-09,
+                                       -8.76855392e-13, -1.00524902e+03, 6.03473759e+00])}
+
+    
+    # expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
+    #                             0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+    #                             [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+    #                             -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+    #                             [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+    #                             -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    assert (numpy.isclose(test_rxn_sys.NASA_matrix['H2O'], expected_nasa['H2O'])).all()
+    assert (numpy.isclose(test_rxn_sys.NASA_matrix['O2'], expected_nasa['O2'])).all()
+    assert (numpy.isclose(test_rxn_sys.NASA_matrix['H'], expected_nasa['H'])).all()
 
 
 def test_rxn_sys_get_highT_nasa_matrix():
     """Tests function to fetch NASA coefficients of appropriate T and appropriate species in reaction."""
     xml_filename = "rxn.xml"
     parser = ReactionParser(xml_filename)
-    temp = 1200 # "low" temperature range in NASA coeffs database
+    temp = 5000 # "high" temperature range in NASA coeffs database
     concentrations = {'H':1, 'O2':1, 'H2O':1}
     rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
-    # Order of low T range NASA coefficients: H, H2O, O2
-    expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
-                                0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
-                                [2.67214561e+00, 3.05629289e-03, -8.73026011e-07, 1.20099639e-10,
-                                -6.39161787e-15, -2.98992090e+04, 6.86281681e+00],
-                                [3.69757819e+00, 6.13519689e-04, -1.25884199e-07, 1.77528148e-11,
-                                -1.13643531e-15, -1.23393018e+03, 3.18916559e+00]])
-    assert numpy.isclose(rxnsys.NASA_matrix, expected_nasa).all()
+    # Order of high T range NASA coefficients: H, H2O, O2
+    expected_nasa = {'O2': numpy.array([3.69757819e+00, 6.13519689e-04,
+                                       -1.25884199e-07, 1.77528148e-11,
+                                       -1.13643531e-15,  -1.23393018e+03, 3.18916559e+00]),
+                    'H2O': numpy.array([2.67214561e+00, 3.05629289e-03,
+                                       -8.73026011e-07, 1.20099639e-10,
+                                       -6.39161787e-15,  -2.98992090e+04, 6.86281681e+00]),
+                    'H': numpy.array([2.50000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 2.54716270e+04, -4.60117638e-01])}
+    # expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
+    #                             0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+    #                             [2.67214561e+00, 3.05629289e-03, -8.73026011e-07, 1.20099639e-10,
+    #                             -6.39161787e-15, -2.98992090e+04, 6.86281681e+00],
+    #                             [3.69757819e+00, 6.13519689e-04, -1.25884199e-07, 1.77528148e-11,
+    #                             -1.13643531e-15, -1.23393018e+03, 3.18916559e+00]])
+    #assert numpy.isclose(rxnsys.NASA_matrix, expected_nasa).all()
+    assert (numpy.isclose(rxnsys.NASA_matrix['H2O'], expected_nasa['H2O'])).all()
+    assert (numpy.isclose(rxnsys.NASA_matrix['O2'], expected_nasa['O2'])).all()
+    assert (numpy.isclose(rxnsys.NASA_matrix['H'], expected_nasa['H'])).all()
 
 
 def test_rxn_sys_rev_reaction():
@@ -84,14 +109,32 @@ def test_rxn_sys_rev_reaction():
     temp = 500 # "low" temperature range in NASA coeffs database
     concentrations = {'H':1, 'O2':1, 'H2O':1}
     rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
-    expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
-                                0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
-                                [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
-                                -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
-                                [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
-                                -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    # expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
+    #                             0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+    #                             [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+    #                             -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+    #                             [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+    #                             -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    expected_nasa = {'O2': numpy.array([3.21293640e+00, 1.12748635e-03,
+                                       -5.75615047e-07, 1.31387723e-09,
+                                       -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]),
+                    'H2O': numpy.array([3.38684249e+00, 3.47498246e-03,
+                                       -6.35469633e-06, 6.96858127e-09,
+                                       -2.50658847e-12, -3.02081133e+04, 2.59023285e+00]),
+                    'H': numpy.array([2.50000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 0.00000000e+00,
+                                     0.00000000e+00, 2.54716270e+04, -4.60117608e-01])}
     rev_rxn_obj = parser.reaction_list[0]
-    assert numpy.isclose(rev_rxn_obj.NASA_poly_coefs, expected_nasa).all()
+    #assert numpy.isclose(rev_rxn_obj.NASA_poly_coefs, expected_nasa).all()
+    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs['H2O'], expected_nasa['H2O'])).all()
+    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs['O2'], expected_nasa['O2'])).all()
+    assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs['H'], expected_nasa['H'])).all()
+
+
+
+
+
+
 
 
 
@@ -385,6 +428,7 @@ def test_compute_reaction_rate_coeff_rev_rxn_without_setting_nasa(test_rev_react
     """Tests trying to compute reaction rate coeffs without setting nasa coeffs"""
     with pytest.raises(ValueError):
         test_rev_reaction.compute_reaction_rate_coeff()
+
 
 def test_compute_reaction_rate_coeff_rev_rxn(test_rev_reaction):
     """Tests computing reaction rate coeff for a reversible reaction"""

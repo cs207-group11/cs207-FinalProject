@@ -239,6 +239,8 @@ class ReactionParser():
 
         nasa_coeffs = numpy.array(cursor.fetchone())
         # print(species_name, nasa_coeffs)
+        db.commit()
+        db.close()
         return nasa_coeffs
 
     def get_Tmid(self, species_name):
@@ -257,7 +259,10 @@ class ReactionParser():
         db = sqlite3.connect('NASA_poly_coeff.sqlite')
         cursor = db.cursor()
         cursor.execute('''SELECT TLOW FROM HIGH WHERE SPECIES_NAME = ?''', (species_name,))
-        return cursor.fetchone()[0]
+        Tmid = cursor.fetchone()[0]
+        db.commit()
+        db.close()
+        return Tmid
 
     def get_NASA_poly_coefs(self):
         """Parses all information for all reactions
@@ -269,13 +274,15 @@ class ReactionParser():
                 key = low, value = coeff in low temp range and
                 key = high, value = coeff in high temp range
         """
-        NASA_poly_coefs = []
+        NASA_poly_coefs = {}
+        #NASA_poly_coefs = []
         for species_name in self.species:
             coef = {}
             coef['Tmid'] = self.get_Tmid(species_name)
             coef['low'] = self.get_coeffs(species_name, 'low')
             coef['high'] = self.get_coeffs(species_name, 'high')
-            NASA_poly_coefs.append(coef)
+            NASA_poly_coefs[species_name] = coef
+            #NASA_poly_coefs.append(coef)
         self.NASA_poly_coefs = NASA_poly_coefs
         return self.NASA_poly_coefs
 

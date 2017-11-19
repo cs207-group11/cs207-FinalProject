@@ -75,14 +75,33 @@ class ReactionSystem(object):
         NASA_array : numpy.ndarray
             array of NASA polynomial coefficients for given temperature range
         """
-        NASA = []
-        for nasa in NASA_poly_coef:
-            if self.temperature <= nasa["Tmid"]:  # get the low temperature
-                NASA.append(nasa["low"])
-            else:
-                NASA.append(nasa["high"])
 
-        return numpy.array(NASA)
+        NASA = {}
+        
+        for specie in NASA_poly_coef:
+            specie_dict = NASA_poly_coef[specie]
+
+            if self.temperature <= specie_dict["Tmid"]: # get the low temperature
+                NASA[specie] = specie_dict["low"]
+            else:
+                print('here')
+                NASA[specie] = specie_dict["high"]
+
+        #print(NASA)
+
+        return NASA
+
+
+        # NASA = []
+        # print(NASA_poly_coef)
+        # for nasa in NASA_poly_coef:
+        #     if self.temperature <= nasa["Tmid"]: # get the low temperature
+        #         NASA.append(nasa["low"])
+        #     else:
+        #         NASA.append(nasa["high"])
+
+        # return numpy.array(NASA)
+
 
 
 class ReactionError(Exception):
@@ -403,7 +422,9 @@ class ReversibleReaction(Reaction):
 
     def set_NASA_poly_coefs(self, coefs):
         """Sets NASA polynomial coefficients."""
-        self.NASA_poly_coefs = coefs
+        print(self.species_list)
+        self.NASA_poly_coefs = coefs #numpy.array(self.order_dictionaries(coefs))
+        #self.NASA_poly_coefs = coefs
 
     def compute_progress_rate(self, T=None):
         """Computes progress rates of reaction.
@@ -797,3 +818,14 @@ class BackwardCoeff():
         ke = (fact ** self.gamma) * numpy.exp(delta_G_over_RT)
 
         return kf / ke
+
+
+if __name__ == "__main__":
+
+    from Parser import *
+
+    xml_filename = "rxn.xml"
+    parser = ReactionParser(xml_filename)
+    temp = 5000 # "low" temperature range in NASA coeffs database
+    concentrations = {'H':1, 'O2':1, 'H2O':1}
+    rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
