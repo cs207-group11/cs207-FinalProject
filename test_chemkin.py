@@ -13,29 +13,12 @@ warnings.simplefilter("error")
 # ======================= TESTS FOR REACTIONSYSTEM OBJECT ====================== #
 
 @pytest.fixture
-def test_base_reaction_system():
+def test_rxn_sys():
     """Returns a valid reaction system"""
-    # rxn1 = Reaction(rxn_type="Elementary",
-    #                 is_reversible=False,
-    #                 rxn_equation="H2 + OH =] H2O + H",
-    #                 species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
-    #                 rate_coeffs_components={'k': 10},
-    #                 reactant_stoich_coeffs={'H2' :1, 'OH':1},
-    #                 product_stoich_coeffs={'H2O' :1, 'H':1})
-    # rxn2 = Reaction(rxn_type="Elementary",
-    #                 is_reversible=True,
-    #                 rxn_equation="O2 + H =] H2O",
-    #                 species_list=['H', 'O', 'OH', 'H2', 'H2O', 'O2'],
-    #                 rate_coeffs_components={'k': 10},
-    #                 reactant_stoich_coeffs={'O2' :1, 'H':1},
-    #                 product_stoich_coeffs={'H2O' :1})
-    # reaction_list = [rxn1, rxn2]
-    # return ReactionSystem(reaction_list)
-
-    xml_filename = "rxns_mixed.xml"
+    xml_filename = "rxn.xml"
     parser = ReactionParser(xml_filename)
-    concentrations = {'H':1, 'O2':2, 'OH':1, 'O':4, 'H2O':0, 'H2':1}
-    temp = 100
+    temp = 500 # "low" temperature range in NASA coeffs database
+    concentrations = {'H':1, 'O2':1, 'H2O':1}
     rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
     return rxnsys
 
@@ -52,14 +35,9 @@ def test_rxn_sys_invalid_temperature():
         rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
 
 
-def test_rxn_sys_get_reaction_rate_for_1_rxn():
+def test_rxn_sys_get_reaction_rate_for_1_rxn(test_rxn_sys):
     """Tests function to get reaction rate for a given system of reactions (just 1 reaction)."""
-    xml_filename = "rxn.xml"
-    parser = ReactionParser(xml_filename)
-    temp = 500
-    concentrations = {'H':1, 'O2':1, 'H2O':1}
-    rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
-    assert rxnsys.get_reaction_rate() == -15.
+    assert test_rxn_sys.get_reaction_rate() == -15.
 
 def test_rxn_sys_get_reaction_rate_for_3_rxns():
     """Tests function to get reaction rate for a given system of reactions (more than 1 reaction)."""
@@ -70,8 +48,51 @@ def test_rxn_sys_get_reaction_rate_for_3_rxns():
     rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
     assert rxnsys.get_reaction_rate() == -10.
 
-# def test_rxn_sys_get_nasa_matrix():
-#   pass
+def test_rxn_sys_get_lowT_nasa_matrix(test_rxn_sys):
+    """Tests function to fetch NASA coefficients of appropriate T and appropriate species in reaction."""
+    # Order of low T range NASA coefficients: H, H2O, O2
+    expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
+                                0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+                                [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+                                -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+                                [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+                                -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    assert numpy.isclose(test_rxn_sys.NASA_matrix, expected_nasa).all()
+
+
+def test_rxn_sys_get_highT_nasa_matrix():
+    """Tests function to fetch NASA coefficients of appropriate T and appropriate species in reaction."""
+    xml_filename = "rxn.xml"
+    parser = ReactionParser(xml_filename)
+    temp = 1200 # "low" temperature range in NASA coeffs database
+    concentrations = {'H':1, 'O2':1, 'H2O':1}
+    rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
+    # Order of low T range NASA coefficients: H, H2O, O2
+    expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
+                                0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+                                [2.67214561e+00, 3.05629289e-03, -8.73026011e-07, 1.20099639e-10,
+                                -6.39161787e-15, -2.98992090e+04, 6.86281681e+00],
+                                [3.69757819e+00, 6.13519689e-04, -1.25884199e-07, 1.77528148e-11,
+                                -1.13643531e-15, -1.23393018e+03, 3.18916559e+00]])
+    assert numpy.isclose(rxnsys.NASA_matrix, expected_nasa).all()
+
+
+def test_rxn_sys_rev_reaction():
+    """Tests setting up reaction system with reversible reaction."""
+    xml_filename = "rev_rxn.xml"
+    parser = ReactionParser(xml_filename)
+    temp = 500 # "low" temperature range in NASA coeffs database
+    concentrations = {'H':1, 'O2':1, 'H2O':1}
+    rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
+    expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
+                                0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+                                [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+                                -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+                                [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+                                -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    rev_rxn_obj = parser.reaction_list[0]
+    assert numpy.isclose(rev_rxn_obj.NASA_poly_coefs, expected_nasa).all()
+
 
 
 # ======================= TESTS FOR REACTION OBJECT ====================== #
@@ -272,6 +293,7 @@ def test_IrrevReaction_compute_progress_rate():
     expected = numpy.array([ 20.])
     assert w == expected
 
+
 def test_IrrevReaction_compute_reaction_rate(test_irrev_reaction):
     """Test compute_reaction_rate() for an elementary,
     irreversible reaction."""
@@ -326,9 +348,19 @@ def test_IrrevReaction_compute_reaction_rate_neg_product_stoich_coeffs(test_base
 
 # ======================= TESTS FOR REVERSIBLE REACTION ====================== #
 
+@pytest.fixture
+def test_rev_reaction():
+    """Returns a valid reaction (from rev_rxn.xml)"""
+    return ReversibleReaction(rxn_type="Elementary",
+                    is_reversible=True,
+                    rxn_equation="H + O2 [=] H2O ",
+                    species_list=['H', 'H2O', 'O2'],
+                    rate_coeffs_components={'k': 10},
+                    reactant_stoich_coeffs={'H' :2, 'O2':1},
+                    product_stoich_coeffs={'H2O' :2})
 
 def test_wrongly_classified_rev_rxn_irreversible():
-    """Test initializing wrongly classified ReversibleReaction (actually irreversible)"""
+    """Tests initializing wrongly classified ReversibleReaction (actually irreversible)"""
     with pytest.raises(ReversibleReactionError):
         test = ReversibleReaction(rxn_type="Elementary",
                                     is_reversible=False,
@@ -339,7 +371,7 @@ def test_wrongly_classified_rev_rxn_irreversible():
                                     product_stoich_coeffs={'H2O' :1, 'H':1})
 
 def test_wrongly_classified_rev_rxn_nonElementary():
-    """Test initializing wrongly classified ReversibleReaction (actually non-elementary)"""
+    """Tests initializing wrongly classified ReversibleReaction (actually non-elementary)"""
     with pytest.raises(ReversibleReactionError):
         test = ReversibleReaction(rxn_type="Non-elementary",
                                     is_reversible=True,
@@ -349,15 +381,55 @@ def test_wrongly_classified_rev_rxn_nonElementary():
                                     reactant_stoich_coeffs={'H2' :1, 'OH':1},
                                     product_stoich_coeffs={'H2O' :1, 'H':1})
 
+def test_compute_reaction_rate_coeff_rev_rxn_without_setting_nasa(test_rev_reaction):
+    """Tests trying to compute reaction rate coeffs without setting nasa coeffs"""
+    with pytest.raises(ValueError):
+        test_rev_reaction.compute_reaction_rate_coeff()
 
+def test_compute_reaction_rate_coeff_rev_rxn(test_rev_reaction):
+    """Tests computing reaction rate coeff for a reversible reaction"""
+    T = 400
+    test_rev_reaction.set_temperature(T)
+    lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                            0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+                            [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+                            -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+                            [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+                            -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    test_rev_reaction.set_NASA_poly_coefs(lowT_nasa)
+    kf, kb = test_rev_reaction.compute_reaction_rate_coeff(T=T)
+    assert kf == 10
+    assert numpy.isclose(kb, 0)
 
+def test_compute_progress_rate_rev_rxn(test_rev_reaction):
+    """Tests computing reaction rate coeff for a reversible reaction"""
+    T = 400
+    test_rev_reaction.set_temperature(T)
+    lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                            0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+                            [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+                            -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+                            [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+                            -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    test_rev_reaction.set_NASA_poly_coefs(lowT_nasa)
+    test_rev_reaction.set_concentrations(X={'H':1, 'O2':1, 'H2O':1})
+    prog_rate = test_rev_reaction.compute_progress_rate(T=T)
+    assert prog_rate == 10
 
-
-
-
-
-
-
+def test_compute_progress_rate_rev_rxn_without_setting_concen(test_rev_reaction):
+    """Tests computing reaction rate coeff for a reversible reaction
+    WITHOUT setting concentration"""
+    T = 400
+    test_rev_reaction.set_temperature(T)
+    lowT_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                            0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
+                            [3.38684249e+00, 3.47498246e-03, -6.35469633e-06, 6.96858127e-09,
+                            -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
+                            [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
+                            -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
+    test_rev_reaction.set_NASA_poly_coefs(lowT_nasa)
+    with pytest.raises(ValueError):
+        prog_rate = test_rev_reaction.compute_progress_rate(T=T)
 
 
 
@@ -490,11 +562,77 @@ def test_ReactionCoeff_mod_arrhenius_changing_R():
 
 
 
+
+
+
+
 # ======================= TESTS FOR BACKWARDCOEFF ====================== #
 
+@pytest.fixture
+def test_backward_coeff():
+    """Returns a working (but artificial) example of
+    backward reaction rate coefficient."""
+    expected_nasa = numpy.array([[1,0,0,0,0,0,0],
+                                [1,0,0,0,0,0,0],
+                                [1,0,0,0,0,0,0]])
+    k_f = 100
+    nu_i = numpy.array([-2, -1, 2])
+    bkwd_coeff = BackwardCoeff(nu_i, expected_nasa)
+    return bkwd_coeff
 
+def test_backwardCoeff_gamma(test_backward_coeff):
+    """Tests value of gamma for working example."""
+    assert test_backward_coeff.gamma == -1
 
+def test_backwardCoeff_computing_H(test_backward_coeff):
+    """Tests computing H/RT for working example."""
+    T = 100
+    expected_H_over_RT = numpy.array([1, 1, 1])
+    assert numpy.isclose(test_backward_coeff.H_over_RT(T),
+                         expected_H_over_RT).all()
 
+def test_backwardCoeff_computing_H_neg_T(test_backward_coeff):
+    """Tests computing H/RT for working example with neg T."""
+    T = -100
+    with pytest.raises(ValueError):
+        test_backward_coeff.H_over_RT(T)
+
+def test_backwardCoeff_computing_S(test_backward_coeff):
+    """Tests computing S/R for working example."""
+    T = 100
+    expected_S_over_R = numpy.array([4.60517, 4.60517, 4.60517])
+    assert numpy.isclose(test_backward_coeff.S_over_R(T),
+                         expected_S_over_R).all()
+
+def test_backwardCoeff_computing_S_neg_T(test_backward_coeff):
+    """Tests computing S/R for working example with neg T."""
+    T = -100
+    with pytest.raises(ValueError):
+        test_backward_coeff.S_over_R(T)
+
+def test_backwardCoeff_computeCoeff(test_backward_coeff):
+    """Tests computing k_b for working example."""
+    T = 100
+    k_f = 100
+    expected_delta_S_over_R = -4.60517
+    expected_delta_H_over_RT = -1
+
+    fact =  test_backward_coeff.p0 / test_backward_coeff.R / T
+    expected_gamma = -1
+    expected_ke = (fact ** expected_gamma) * (numpy.exp(expected_delta_S_over_R - 
+                                                        expected_delta_H_over_RT))
+
+    expected_kb_val = 442457 # 100 / 2.260104919e-6
+
+    assert numpy.isclose(test_backward_coeff.compute_backward_coeffs(k_f, T),
+                         expected_kb_val)
+
+def test_backwardCoeff_computeCoeff_neg_T(test_backward_coeff):
+    """Tests computing k_b for working example with neg T."""
+    T = -100
+    k_f = 100
+    with pytest.raises(ValueError):
+        test_backward_coeff.compute_backward_coeffs(k_f, T)
 
 
 

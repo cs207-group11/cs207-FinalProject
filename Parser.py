@@ -236,7 +236,10 @@ class ReactionParser():
             cursor.execute('''SELECT COEFF_1, COEFF_2, COEFF_3, COEFF_4, 
                            COEFF_5,COEFF_6,COEFF_7 FROM LOW 
                            WHERE SPECIES_NAME = ?''', (species_name,))
-        return numpy.array(cursor.fetchone())
+
+        nasa_coeffs = numpy.array(cursor.fetchone())
+        # print(species_name, nasa_coeffs)
+        return nasa_coeffs
 
     def get_Tmid(self, species_name):
         """Returns middle T value.

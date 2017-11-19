@@ -6,12 +6,12 @@ import warnings
 
 
 class ReactionSystemError(Exception):
-    """Class for ReactionSystem-related errors)"""
+    """Class for ReactionSystem-related errors."""
     pass
 
 class ReactionSystem(object):
     """Class for a system of reactions extracted from an xml file"""
-    def __init__(self, reaction_list, NASA_poly_coefs, temp, concentrations):
+    def __init__(self, reaction_list, NASA_poly_coefs, temperature, concentrations):
         """Initializes ReactionSystem.
         
         INPUTS:
@@ -32,17 +32,20 @@ class ReactionSystem(object):
         """
         self.reaction_list = reaction_list
 
-        if temp <= 0:
+        if temperature <= 0:
             raise ValueError("Temperature has to be a positive value!")
 
-        self.temperature = temp
+        self.temperature = temperature
         self.NASA_matrix = self.get_nasa_matrix(NASA_poly_coefs)
 
+        # NOTE: Not sure if this is good enough!
         self.involved_species = reaction_list[0].species_list
 
+        # Set up each reaction
         for r in self.reaction_list:
             r.set_concentrations(concentrations)
             r.set_temperature(self.temperature)
+            
             if isinstance(r, ReversibleReaction):
                 r.set_NASA_poly_coefs(self.NASA_matrix)
            
@@ -78,6 +81,7 @@ class ReactionSystem(object):
                 NASA.append(nasa["low"])
             else:
                 NASA.append(nasa["high"])
+
         return numpy.array(NASA)
 
 
@@ -88,8 +92,7 @@ class Reaction(object):
     """Base class for an elementary reaction.
     NOTE: This class is meant to serve as a framework for specific types of reactions!"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list,
-                 rate_coeffs_components,
-                 reactant_stoich_coeffs, product_stoich_coeffs):
+                 rate_coeffs_components, reactant_stoich_coeffs, product_stoich_coeffs):
         """
         Initializes Reaction
     
@@ -145,8 +148,8 @@ class Reaction(object):
     def __str__(self):
         """Returns user-friendly string representation of reaction.
 
-        RETURNS
-        =======
+        RETURNS:
+        --------
         info : str
             string representation of reaction (reaction equation)
         """
@@ -156,8 +159,8 @@ class Reaction(object):
     def __len__(self):
         """Returns number of unique species in reaction.
 
-        RETURNS
-        =======
+        RETURNS:
+        --------
         n_species : int
             Number of unique species involved in the reaction
         """
@@ -168,8 +171,8 @@ class Reaction(object):
         """Helper function to return unique species involved
         in the reaction.
         
-        RETURNS
-        =======
+        RETURNS:
+        --------
         unique_species : list
             list of unique species in reaction
         """
@@ -181,13 +184,13 @@ class Reaction(object):
     def set_temperature(self, T):
         """Sets temperature of the reaction
 
-        INPUTS 
-        ======
+        INPUTS:
+        -------
         T : float
             Temperature of reaction
 
-        NOTES
-        =====
+        NOTES:
+        ------
         POST:
             - Updates self.temperature
             - Raises ValueError if inputed temperature is non-positive
@@ -200,8 +203,8 @@ class Reaction(object):
     def set_concentrations(self, X):
         """Sets concentrations of the reaction
 
-        INPUTS
-        ======
+        INPUTS:
+        -------
         X : dict 
             dictionary with species and corresponding concentrations
         """
@@ -216,13 +219,13 @@ class Reaction(object):
         stoichiometric coefficients) based on ordering from species_list.
         This is to ensure a consistent ordering scheme.
 
-        INPUTS
-        ======
+        INPUTS:
+        -------
         dictionary : dict
             dictionary to order 
 
-        RETURNS
-        =======
+        RETURNS:
+        --------
         list_of_interest : list
             list of dictionary's keys in order of species_list
         """
@@ -234,8 +237,8 @@ class Reaction(object):
     def compute_reaction_rate_coeff(self, T=None):
         """Computes reaction rate coefficients of reaction.
 
-        RETURNS
-        =======
+        RETURNS:
+        --------
         k : numeric type (or list of numeric type)
             Reaction rate coefficient
         """
@@ -244,8 +247,8 @@ class Reaction(object):
     def compute_progress_rate(self, T=None):
         """Computes progress rates of reaction.
 
-        RETURNS
-        =======
+        RETURNS:
+        --------
         omega_array : numpy.ndarray
             Array of progress rates of reaction
         """
@@ -254,8 +257,8 @@ class Reaction(object):
     def compute_reaction_rate(self, T=None):
         """Computes reaction rate of this SINGLE reaction object.
 
-        RETURNS
-        =======
+        RETURNS:
+        --------
         rxn_rate_array: numpy.ndarray
             Array of reaction rates of reaction
 
@@ -298,8 +301,9 @@ class IrreversibleReaction(Reaction):
     """Class for irreversible elementary reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
-        super(IrreversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
-                         reactant_stoich_coeffs, product_stoich_coeffs)
+        super(IrreversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation,
+                                                   species_list, rate_coeffs_components,
+                                                   reactant_stoich_coeffs, product_stoich_coeffs)
 
         if not (rxn_type == "Elementary" and is_reversible == False):
             raise IrreversibleReactionError("This reaction is not irreversible nor elementary!") 
@@ -307,11 +311,17 @@ class IrreversibleReaction(Reaction):
     def compute_reaction_rate_coeff(self, T=None):
         """Computes reaction rate coefficients of reaction.
 
-        RETURNS
-        =======
+        INPUTS:
+        -------
+        T : float
+            temperature of reaction, in K
+
+        RETURNS:
+        --------
         k : numeric type (or list of numeric type)
             Reaction rate coefficient
         """
+        T = self.temperature
         k = ReactionCoeff(self.rate_coeffs_components,
                           T=self.temperature).k
         self.rxn_rate_coeff = k
@@ -320,11 +330,17 @@ class IrreversibleReaction(Reaction):
     def compute_progress_rate(self, T=None):
         """Computes progress rates of reaction.
 
-        RETURNS
-        =======
+        INPUTS:
+        -------
+        T : float
+            temperature of reaction, in K
+
+        RETURNS:
+        --------
         omega_array : numpy.ndarray
             Array of progress rates of reaction
         """
+        T = self.temperature
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
         concen_array = self.concentrations
 
@@ -332,41 +348,11 @@ class IrreversibleReaction(Reaction):
             raise ValueError("You must set the concentrations first!")
 
         k = self.compute_reaction_rate_coeff(T)
-        if k < 0:
-            raise ValueError("Reaction rate constants must be positive!")
 
         concen_powered_j = concen_array ** reactant_stoich_coeffs
 
         progress_rate = k * numpy.prod(concen_powered_j)
         return progress_rate
-
-    def compute_reaction_rate(self, T=None):
-        """Computes reaction rate of this SINGLE reaction object.
-
-        RETURNS
-        =======
-        rxn_rate_array: numpy.ndarray
-            Array of reaction rates of reaction
-        """
-
-        reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
-        product_stoich_coeffs = numpy.array(self.order_dictionaries(self.product_stoich_coeffs))
-        concen_array = self.concentrations
-
-        if (reactant_stoich_coeffs < 0).any():
-            raise ValueError("Reactant stoichiometric coefficients must be positive!")
-        
-        if (product_stoich_coeffs < 0).any():
-            raise ValueError("Product stoichiometric coefficients must be positive!")
-
-        progress_rate = self.compute_progress_rate(T)
-        nu_i = product_stoich_coeffs - reactant_stoich_coeffs
-
-        reaction_rate_1_eq = progress_rate * nu_i
-        return reaction_rate_1_eq
-
-
-
 
 
 class ReversibleReactionError(Exception):
@@ -380,38 +366,59 @@ class ReversibleReaction(Reaction):
         super(ReversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs)
 
+        self.NASA_poly_coefs = None
+
         if not (rxn_type == "Elementary" and is_reversible == True):
             raise ReversibleReactionError("This reaction is not reversible nor elementary!") 
 
     def compute_reaction_rate_coeff(self, T=None):
         """Computes reaction rate coefficients of reaction.
 
-        RETURNS
-        =======
-        k : numeric type (or list of numeric type)
-            Reaction rate coefficient
+        INPUTS:
+        -------
+        T : float
+            temperature of reaction, in K
+
+        RETURNS:
+        --------
+        kf : numeric type (or list of numeric type)
+            forward reaction rate coefficient
+        kb : numeric type (or list of numeric type)
+            backward reaction rate coefficient
         """
         coeffs = ReactionCoeff(self.rate_coeffs_components, T=self.temperature)
         self.forward_rxn_rate_coeff = coeffs.k
+        
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
         product_stoich_coeffs = numpy.array(self.order_dictionaries(self.product_stoich_coeffs))
         nui = product_stoich_coeffs - reactant_stoich_coeffs
+        
+        if (self.NASA_poly_coefs is None):
+            raise ValueError("Must set NASA polynomial coefficients before computing rxn rate coefficients!")
+        
         back_coeffs = BackwardCoeff(nui, self.NASA_poly_coefs)
-        self.backward_rxn_rate_coeff = back_coeffs.backward_coeffs(self.forward_rxn_rate_coeff, self.temperature)
-        #just to conform with the crude interface, can be deleted afterwards
+        self.backward_rxn_rate_coeff = back_coeffs.compute_backward_coeffs(self.forward_rxn_rate_coeff,
+                                                                           self.temperature)
         return self.forward_rxn_rate_coeff, self.backward_rxn_rate_coeff
 
     def set_NASA_poly_coefs(self, coefs):
+        """Sets NASA polynomial coefficients."""
         self.NASA_poly_coefs = coefs
 
     def compute_progress_rate(self, T=None):
         """Computes progress rates of reaction.
 
-        RETURNS
-        =======
+        INPUTS:
+        -------
+        T : float
+            temperature of reaction, in K
+
+        RETURNS:
+        --------
         omega_array : numpy.ndarray
             Array of progress rates of reaction
         """
+
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
         product_stoich_coeffs = numpy.array(self.order_dictionaries(self.product_stoich_coeffs))
         concen_array = self.concentrations
@@ -446,8 +453,8 @@ class ReactionCoeff(object):
     def __init__(self, k_parameters, T=None):
         """Initializes reaction rate coefficients.
 
-        INPUTS
-        ======
+        INPUTS:
+        -------
         T : int or float
             temperature of the reaction (in Kelvin)
         k_parameters : dictionary
@@ -460,20 +467,20 @@ class ReactionCoeff(object):
     def get_coeff(self, k_parameters, T):
         """Computes reaction rate coefficients depending on passed parameters.
 
-        INPUTS
-        ======
+        INPUTS:
+        -------
         T : int or float
             temperature of the reaction (in Kelvin)
         k_parameters : dictionary
             dictionary of parameters to compute k
         
-        RETURNS
-        =======
+        RETURNS:
+        --------
         k : int or float
             reaction rate coefficient of the reaction
 
-        NOTES
-        =====
+        NOTES:
+        ------
         PRE:
             - Raise ValueError if customized reaction rate coefficient depends on T
         POST:
@@ -528,33 +535,35 @@ class ReactionCoeff(object):
         else:
             raise NotImplementedError("The combination of parameters entered is not supported for the calculation of Reaction Rate Coefficient.")
 
+
     def const(self, k):
         """Returns constant reaction rate coefficients k.
 
-        INPUTS
-        =======
+        INPUTS:
+        -------
         k : numeric type 
             constant reaction rate coefficient
 
-        RETURNS
-        ========
+        RETURNS:
+        --------
         k : numeric type
             constant reaction rate coefficients.
 
-        NOTES
-        =====
+        NOTES:
+        ------
         POST:
             - Raises ValueError if k is non-positive!
         """
         if k <= 0:
             raise ValueError("Reaction rate must be positive.")
+        
         return k
 
     def arr(self, A, E, T, R=8.314):
         """Returns Arrhenius reaction rate coefficients k.
 
-        INPUTS
-        ======
+        INPUTS:
+        -------
         A: float, strictly positive, no default value
            The Arrhenius prefactor
         E: float, no default value
@@ -564,15 +573,15 @@ class ReactionCoeff(object):
         R: float, default value is 8.314, cannot be changed except to convert units
            The ideal gas constant
 
-        RETURNS
-        =======
+        RETURNS:
+        --------
         k: Arrhenius reaction rate coefficients k,
            floats
            unless A or T is not postive
            in which case a ValueError exception is raised
 
-        NOTES
-        =====
+        NOTES:
+        ------
         POST:
             - Raises ValueError if A, T, or R is non-positive
             - Raises Warning if user changes value of R
@@ -596,8 +605,8 @@ class ReactionCoeff(object):
     def mod_arr(self, A, b, E, T, R=8.314):
         """Returns Arrhenius reaction rate coefficients k.
 
-        INPUTS
-        =======
+        INPUTS:
+        -------
         A: float, strictly positive, no default value
            The Arrhenius prefactor
         b: real, no default value
@@ -609,8 +618,8 @@ class ReactionCoeff(object):
         R: float, default value is 8.314, cannot be changed except to convert units
            The ideal gas constant
 
-        RETURNS
-        ========
+        RETURNS:
+        --------
         k: Arrhenius reaction rate coefficients k,
            floats
            unless A or T is not postive
@@ -618,8 +627,8 @@ class ReactionCoeff(object):
            Or b is not a real number
            in which case a TypeError exception is raised
 
-        NOTES
-        =====
+        NOTES:
+        ------
         POST:
             - Raises ValueError if A, T, or R is non-positive
             - Raises TypeError if b is not real
@@ -645,70 +654,136 @@ class ReactionCoeff(object):
         k = A * T ** b * numpy.exp(-E / R / T)
         return k
 
+
+
+
 class BackwardCoeff():
-    """Methods for calculating the backward reaction rate.
-    
-    Cp_over_R: Returns specific heat of each specie given by
-               the NASA polynomials.
-    H_over_RT:  Returns the enthalpy of each specie given by
-                the NASA polynomials.
-    S_over_R: Returns the entropy of each specie given by
-              the NASA polynomials.
-    backward_coeffs:  Returns the backward reaction rate
-                      coefficient for reach reaction.
-
-    Please see the notes in each routine for clarifications and
-    warnings.  You will need to customize these methods (and
-    likely the entire class) to suit your own code base.
-    Nevertheless, it is hoped that you will find these methods
-    to be of some use.
-    """
-
+    """Class for computing backward reaction rate
+    coefficients for reversible reactions."""
     def __init__(self, nui, nasa7_coeffs):
+        """Initializes BackwardCoeff.
+
+        INPUTS:
+        -------
+        nui : numpy.ndarray
+            stoichiometric coefficient difference (stoich_products - stoich_reactants)
+                for a single reversible reaction
+        nasa7_coeffs : numpy.ndarray
+            NASA polynomial coefficients (from appropriate temperature range)
+                corresponding to species in reversible reaction
+
+        ATTRIBUTES:
+        -----------
+        p0 : float
+            pressure of reaction, in Pascals
+        R : float
+            gas constant, in J / mol / K
+        gamma : numpy.ndarray
+            sum of stoichiometric coefficient difference 
+        """
         self.nui = nui
         self.nasa7_coeffs = nasa7_coeffs
-        self.p0 = 1.0e+05  # Pa
-        self.R = 8.3144598  # J / mol / K
+        self.p0 = 1.0e+05
+        self.R = 8.3144598
         self.gamma = numpy.sum(self.nui)
 
-    def Cp_over_R(self, T):
-        # WARNING:  This line will depend on your own data structures!
-        # Be careful to get the correct coefficients for the appropriate
-        # temperature range.  That is, for T <= Tmid get the low temperature
-        # range coeffs and for T > Tmid get the high temperature range coeffs.
-        a = self.nasa7_coeffs
+    # def Cp_over_R(self, T):
+    #     """Returns specific heat of each specie given by
+    #     the NASA polynomials.
 
-        Cp_R = (a[:, 0] + a[:, 1] * T + a[:, 2] * T ** 2.0
-                + a[:, 3] * T ** 3.0 + a[:, 4] * T ** 4.0)
+    #     INPUTS:
+    #     -------
+    #     T : float
+    #         temperature of reaction
 
-        return Cp_R
+    #     RETURNS:
+    #     --------
+    #     Cp_R : numpy.ndarray
+    #         specific heat values for each specie
+    #     """
+    #     a = self.nasa7_coeffs
+    #     Cp_R = (a[:, 0] + a[:, 1] * T + a[:, 2] * T ** 2.0
+    #             + a[:, 3] * T ** 3.0 + a[:, 4] * T ** 4.0)
+    #     return Cp_R
 
     def H_over_RT(self, T):
-        # WARNING:  This line will depend on your own data structures!
-        # Be careful to get the correct coefficients for the appropriate
-        # temperature range.  That is, for T <= Tmid get the low temperature
-        # range coeffs and for T > Tmid get the high temperature range coeffs.
+        """Returns the enthalpy of each specie given by
+        the NASA polynomials.
+
+        INPUTS:
+        -------
+        T : float
+            temperature of reaction
+
+        RETURNS:
+        --------
+        H_RT : numpy.ndarray
+            enthalpy values for each specie
+
+        NOTES:
+        ------
+        PRE:
+            - Raises ValueError if inputed temperature is non-positive
+        """
+        if T <= 0:
+            raise ValueError("Temperature has to be a positive value!")
+
         a = self.nasa7_coeffs
-
-        H_RT = (a[:, 0] + a[:, 1] * T / 2.0 + a[:, 2] * T ** 2.0 / 3.0
-                + a[:, 3] * T ** 3.0 / 4.0 + a[:, 4] * T ** 4.0 / 5.0
+        H_RT = (a[:, 0] + (0.5 * a[:, 1] * T) + (a[:, 2] * T ** 2.0) / 3.0
+                + (a[:, 3] * T ** 3.0) / 4.0 + (a[:, 4] * T ** 4.0) / 5.0
                 + a[:, 5] / T)
-
         return H_RT
 
     def S_over_R(self, T):
-        # WARNING:  This line will depend on your own data structures!
-        # Be careful to get the correct coefficients for the appropriate
-        # temperature range.  That is, for T <= Tmid get the low temperature
-        # range coeffs and for T > Tmid get the high temperature range coeffs.
+        """Returns the entropy of each specie given by
+        the NASA polynomials.
+
+        INPUTS:
+        -------
+        T : float
+            temperature of reaction
+
+        RETURNS:
+        --------
+        S_R : numpy.ndarray
+            entropy values for each specie
+
+        NOTES:
+        ------
+        PRE:
+            - Raises ValueError if inputed temperature is non-positive
+        """
+        if T <= 0:
+            raise ValueError("Temperature has to be a positive value!")
+
         a = self.nasa7_coeffs
-
-        S_R = (a[:, 0] * numpy.log(T) + a[:, 1] * T + a[:, 2] * T ** 2.0 / 2.0
-               + a[:, 3] * T ** 3.0 / 3.0 + a[:, 4] * T ** 4.0 / 4.0 + a[:, 6])
-
+        S_R = (a[:, 0] * numpy.log(T) + a[:, 1] * T + (a[:, 2] * T ** 2.0) / 2.0
+               + (a[:, 3] * T ** 3.0) / 3.0 + (a[:, 4] * T ** 4.0) / 4.0 + a[:, 6])
         return S_R
 
-    def backward_coeffs(self, kf, T):
+    def compute_backward_coeffs(self, kf, T):
+        """Returns the backward reaction rate
+        coefficient for each specie.
+
+        INPUTS:
+        -------
+        kf : numpy.ndarray[float]
+            array of forward reaction rate coefficients for each specie in reaction
+        T : float
+            temperature of reaction
+
+        RETURNS:
+        --------
+        kb : backward reaction rate coefficient for each specie
+
+        NOTES:
+        ------
+        PRE:
+            - Raises ValueError if inputed temperature is non-positive
+        """
+        if T <= 0:
+            raise ValueError("Temperature has to be a positive value!")
+
         # Change in enthalpy and entropy for each reaction
         delta_H_over_RT = numpy.dot(self.nui, self.H_over_RT(T))
         delta_S_over_R = numpy.dot(self.nui, self.S_over_R(T))
@@ -716,34 +791,9 @@ class BackwardCoeff():
         # Negative of change in Gibbs free energy for each reaction
         delta_G_over_RT = delta_S_over_R - delta_H_over_RT
 
-        # Prefactor in Ke
+        # Prefactor in k_e (equilibrium coefficient)
         fact = self.p0 / self.R / T
 
-        # Ke
-        kb = fact ** self.gamma * numpy.exp(delta_G_over_RT)
+        ke = (fact ** self.gamma) * numpy.exp(delta_G_over_RT)
 
-        return kf / kb
-
-# if __name__ == "__main__":
-
-#     xml_filename = "rxns.xml"
-#     parser = ReactionParser(xml_filename)
-#     parser()
-#     rxn1 = parser.reaction_list[0]
-
-#     print rxn1
-#     # print rxn1.species_list
-#     # print rxn1.reactant_stoich_coeffs
-#     # print rxn1.product_stoich_coeffs
-#     # print rxn1.rate_coeffs_components
-
-#     rxn1.set_concentrations({'H':1, 'O2':2, 'OH':0, 'O':0, 'H2O':0, 'H2':0})
-#     rxn1.set_temperature(100)
-#     rxn1.compute_reaction_rate_coeff()
-#     omega = rxn1.compute_progress_rate()
-#     rxnrate = rxn1.compute_reaction_rate()
-
-#     print("Reaction rate coefficient (k) : {}".format(rxn1.rxn_rate_coeff))
-#     print("Reaction progress rate: {}".format(omega))
-#     print("Reaction rate: {}".format(rxnrate))
-
+        return kf / ke
