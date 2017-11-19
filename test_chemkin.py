@@ -34,7 +34,6 @@ def test_base_reaction_system():
 
     xml_filename = "rxns_mixed.xml"
     parser = ReactionParser(xml_filename)
-    reaction_list = parser.get_reaction_list()
     concentrations = {'H':1, 'O2':2, 'OH':1, 'O':4, 'H2O':0, 'H2':1}
     temp = 100
     rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
@@ -44,7 +43,6 @@ def test_rxn_sys_invalid_temperature():
     """Tests setting up reaction system with invalid temperatures."""
     xml_filename = "rxns_mixed.xml"
     parser = ReactionParser(xml_filename)
-    reaction_list = parser.get_reaction_list()
     concentrations = {'H':1, 'O2':2, 'OH':1, 'O':4, 'H2O':0, 'H2':1}
     temp = 0
     with pytest.raises(ValueError):
