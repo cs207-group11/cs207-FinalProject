@@ -55,6 +55,7 @@ class ReactionSystem(object):
             list of reaction rates of reactions in the system
         """
         reaction_rate_list = [rxnObj.compute_reaction_rate() for rxnObj in self.reaction_list]
+        #print(reaction_rate_list)
         return numpy.sum(reaction_rate_list)
 
     def get_nasa_matrix(self, NASA_poly_coef):

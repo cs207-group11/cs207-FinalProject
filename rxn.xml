@@ -13,7 +13,7 @@
             <equation> H + O2 =] H2O </equation>
             <rateCoeff>
                 <Constant>
-                    <k>10</k>
+                    <k>15</k>
                 </Constant>
             </rateCoeff>
             <reactants>H:2 O2:1</reactants>

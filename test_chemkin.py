@@ -54,13 +54,26 @@ def test_rxn_sys_invalid_temperature():
         rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
 
 
-def test_rxn_sys_get_reaction_rate():
-    """Tests function to get reaction rate for a given system of reactions."""
-    pass
+def test_rxn_sys_get_reaction_rate_for_1_rxn():
+    """Tests function to get reaction rate for a given system of reactions (just 1 reaction)."""
+    xml_filename = "rxn.xml"
+    parser = ReactionParser(xml_filename)
+    temp = 500
+    concentrations = {'H':1, 'O2':1, 'H2O':1}
+    rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
+    assert rxnsys.get_reaction_rate() == -15.
+
+def test_rxn_sys_get_reaction_rate_for_3_rxns():
+    """Tests function to get reaction rate for a given system of reactions (more than 1 reaction)."""
+    xml_filename = "rxnsys.xml"
+    parser = ReactionParser(xml_filename)
+    temp = 10
+    concentrations = {'H':1, 'O2':1, 'OH':1, 'O':1, 'H2O':1, 'H2':1}
+    rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
+    assert rxnsys.get_reaction_rate() == -10.
 
 # def test_rxn_sys_get_nasa_matrix():
-#     pass
-
+#   pass
 
 
 # ======================= TESTS FOR REACTION OBJECT ====================== #
