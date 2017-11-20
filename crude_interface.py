@@ -1,32 +1,33 @@
 
-"""Crude interface/script for code review."""
+# """Crude interface/script for code review."""
 
 from Parser import *
+from chemkin import *
+import copy
 
-#User Input : Parse from input XML File
-xml_filename1 = "rxns.xml"
-xml_filename2 = "rxns_reversible.xml"
-xml_filename3 = "rxns_mixed.xml"
-parser = ReactionParser(xml_filename3)
-#parser1 = ReactionParser(xml_filename1)
-reaction_list = parser.get_reaction_list()
-concentration2 = ({'H':1, 'H2':2, 'H2O':0, 'H2O2':0, 'HO2':0, 'O':0,"O2":2,"OH":0})
-concentration1 = {'H':1, 'O2':2, 'OH':1, 'O':4, 'H2O':0, 'H2':1}
-concentration3 = {'H':1, 'O2':2, 'OH':1, 'O':4, 'H2O':0, 'H2':1}
-concentration_old = ({})
-rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, 100, concentration3)
-#rxnsys2 = ReactionSystem(parser1.reaction_list, parser.NASA_poly_coefs, 100, concentration1)
+xml_filename = "rxns_reversible.xml"
+parser = ReactionParser(xml_filename)
+concentration = ({'H':1, 'H2':1, 'H2O':1, 'H2O2':1, 'HO2':1, 'O':1, "O2":1, "OH":1})
+temperature = 1000
+rxnsys = ReactionSystem(parser.reaction_list,
+                        parser.NASA_poly_coefs,
+                        temperature,
+                        concentration)
 
 
-#Sanity Check for Testing
-# for rxn1 in rxnsys.reaction_list:
-#     print (rxn1.compute_reaction_rate_coeff())
-#     print (rxn1.compute_progress_rate())
-#     print (rxn1.compute_reaction_rate())
 
-#User Call : Compute Reaction Rate Coefficient (K) --> Next : Progress Rate (and/or) Reaction Rate.
-rxnrate = rxnsys.get_reaction_rate()
-#rxnrate2 = rxnsys2.get_reaction_rate()
+# xml_filename = "rxnset_long.xml"
+# parser = ReactionParser(xml_filename)
+# concentration = ({'H':1, 'H2':1, 'H2O':1, 'H2O2':1, 'HO2':1, 'O':1, "O2":1, "OH":1})
+# temperature = 1000
+# rxnsys = ReactionSystem(parser.reaction_list,
+#                         parser.NASA_poly_coefs,
+#                         temperature,
+#                         concentration)
 
-print("Reaction rate: {}".format(rxnrate))
-#print("Reaction rate: {}".format(rxnrate2))
+
+
+rxnrates_dict = rxnsys.sort_reaction_rates()
+
+for k, v in rxnrates_dict.items():
+    print("d[{0}]/dt : \t {1:e}".format(k, v))
