@@ -1,29 +1,33 @@
 
-"""Crude interface/script for code review."""
+# """Crude interface/script for code review."""
 
+from Parser import *
 from chemkin import *
+import copy
 
-#User Input : Parse from input XML File
-xml_filename = "rxns.xml"
+xml_filename = "rxns_reversible.xml"
 parser = ReactionParser(xml_filename)
-parser()
-rxnsys = ReactionSystem(parser.reaction_list)
+concentration = ({'H':1, 'H2':1, 'H2O':1, 'H2O2':1, 'HO2':1, 'O':1, "O2":1, "OH":1})
+temperature = 1000
+rxnsys = ReactionSystem(parser.reaction_list,
+                        parser.NASA_poly_coefs,
+                        temperature,
+                        concentration)
 
 
-#User Input : Enter all Specie concentrations, order does not matter.
-rxnsys.set_concentrations({'H':1, 'O2':2, 'OH':1, 'O':4, 'H2O':0, 'H2':1})
 
-#User Input : Enter Temperature.
-rxnsys.set_temperature(100)
+# xml_filename = "rxnset_long.xml"
+# parser = ReactionParser(xml_filename)
+# concentration = ({'H':1, 'H2':1, 'H2O':1, 'H2O2':1, 'HO2':1, 'O':1, "O2":1, "OH":1})
+# temperature = 1000
+# rxnsys = ReactionSystem(parser.reaction_list,
+#                         parser.NASA_poly_coefs,
+#                         temperature,
+#                         concentration)
 
-#Sanity Check for Testing
-for rxn1 in rxnsys.reaction_list:
-    print (rxn1)
-    print (rxn1.compute_reaction_rate_coeff())
-    print (rxn1.compute_progress_rate())
-    print (rxn1.compute_reaction_rate())
 
-#User Call : Compute Reaction Rate Coefficient (K) --> Next : Progress Rate (and/or) Reaction Rate.
-rxnrate = rxnsys.get_reaction_rate()
 
-print("Reaction rate: {}".format(rxnrate))
+rxnrates_dict = rxnsys.sort_reaction_rates()
+
+for k, v in rxnrates_dict.items():
+    print("d[{0}]/dt : \t {1:e}".format(k, v))

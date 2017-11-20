@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<ctml>
+
+    <phase>
+        <speciesArray> H O2 H2O </speciesArray>
+    </phase>
+
+    <reactionData id="test_mechanism">
+
+        <!-- reaction 01  -->
+        <reaction reversible="yes" type="Elementary" id="reaction01">
+            <equation> H + O2 [=] H2O </equation>
+            <rateCoeff>
+                <Constant>
+                    <k>15</k>
+                </Constant>
+            </rateCoeff>
+            <reactants>H:2 O2:1</reactants>
+            <products>H2O:2</products>
+        </reaction>
+
+    </reactionData>
+
+</ctml>
