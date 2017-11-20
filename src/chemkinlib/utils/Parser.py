@@ -1,13 +1,13 @@
 
-"""Module for parser for reactions."""
+"""Module for parsing reaction parameters."""
 
-import sqlite3
 import numpy
 import os.path
+import sqlite3
 import xml.etree.ElementTree as ET
 
-from chemkinlib.reactions import Reactions
 from chemkinlib.config import DATA_DIRECTORY
+from chemkinlib.reactions import Reactions
 
 
 class ReactionParser():

@@ -1,4 +1,6 @@
 
+"""Test module for ReactionSystems."""
+
 import numpy
 import os
 import pytest
@@ -7,7 +9,6 @@ import warnings
 from chemkinlib.config import DATA_DIRECTORY
 from chemkinlib.utils import Parser 
 from chemkinlib.reactions import Reactions, ReactionSystems
-
 
 # Treat warnings like errors (for testing purposes)
 warnings.simplefilter("error")

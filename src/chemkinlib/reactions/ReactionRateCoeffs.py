@@ -1,4 +1,6 @@
 
+"""Module with classes for computing reaction rate coefficients (forward and backward)."""
+
 import numbers
 import numpy
 import warnings
