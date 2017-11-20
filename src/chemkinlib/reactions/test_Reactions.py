@@ -1,11 +1,15 @@
 
+"""Test module for Reactions."""
+
 import numpy
 import pytest
 import warnings
+
 from chemkinlib.reactions import Reactions, ReactionRateCoeffs
 
 # Treat warnings like errors (for testing purposes)
 warnings.simplefilter("error")
+
 
 # ======================= TESTS FOR REACTION OBJECT ====================== #
 

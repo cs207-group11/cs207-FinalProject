@@ -1,5 +1,8 @@
 
+"""Module for setting up reaction system."""
+
 import numpy
+
 from chemkinlib.reactions import Reactions, ReactionRateCoeffs
 
 class ReactionSystemError(Exception):

@@ -1,7 +1,10 @@
 
+"""Test module for ReactionRateCoeffs."""
+
 import numpy
 import pytest
 import warnings
+
 from chemkinlib.reactions import ReactionRateCoeffs 
 
 # Treat warnings like errors (for testing purposes)
