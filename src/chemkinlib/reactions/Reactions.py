@@ -196,7 +196,6 @@ class Reaction(object):
         """
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
         product_stoich_coeffs = numpy.array(self.order_dictionaries(self.product_stoich_coeffs))
-        concen_array = self.concentrations
 
         if (reactant_stoich_coeffs < 0).any():
             raise ValueError("Reactant stoichiometric coefficients must be positive!")
@@ -339,7 +338,7 @@ class ReversibleReaction(Reaction):
         list_of_interest = [element[1] for element in sorted_tuple_list]
 
         list_of_interest = numpy.array(list_of_interest)
-       # print(list_of_interest)
+        #print(list_of_interest)
 
         self.NASA_poly_coefs_dict = coefs
         self.NASA_poly_coefs = list_of_interest

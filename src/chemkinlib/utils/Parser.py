@@ -285,7 +285,6 @@ class ReactionParser():
             NASA_poly_coefs[species_name] = coef
             #NASA_poly_coefs.append(coef)
         self.NASA_poly_coefs = NASA_poly_coefs
-        #print(self.NASA_poly_coefs)
         return self.NASA_poly_coefs
 
     def get_reaction_list(self):
