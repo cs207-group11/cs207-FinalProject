@@ -854,14 +854,3 @@ class BackwardCoeff():
         ke = (fact ** self.gamma) * numpy.exp(delta_G_over_RT)
 
         return kf / ke
-
-
-if __name__ == "__main__":
-
-    from Parser import *
-
-    xml_filename = "rxn.xml"
-    parser = ReactionParser(xml_filename)
-    temp = 5000 # "low" temperature range in NASA coeffs database
-    concentrations = {'H':1, 'O2':1, 'H2O':1}
-    rxnsys = ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)

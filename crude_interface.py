@@ -27,27 +27,7 @@ rxnsys = ReactionSystem(parser.reaction_list,
 
 
 
-
-# #Sanity Check for Testing
-# rates = []
-# flag = 1
-# for rxn in rxnsys.reaction_list:
-#     #print(rxn, type(rxn))
-#     print(rxn.species_list)
-#     list_species_ordered = list(rxn.species_list)
-#     rate = rxn.compute_reaction_rate()
-#     rates.append(rate)
-
-# rates = numpy.array(rates)
-# print(rates.shape)
-
-# rates_rxn_sys = numpy.sum(rates, axis=0)
-# print(rates_rxn_sys)
-
-#3print(rxnsys.involved_species)
-
 rxnrates_dict = rxnsys.sort_reaction_rates()
-# print(rxnrates_dict)
 
 for k, v in rxnrates_dict.items():
-    print("{0} \t {1:e}".format(k, v))
+    print("d[{0}]/dt : \t {1:e}".format(k, v))
