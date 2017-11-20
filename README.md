@@ -19,7 +19,7 @@ There are two options for installing ChemKinLib:
 
 1) Clone the repository into you local system.
 
-2) Execute in terminal: `python setup.py install`
+2) Execute in terminal: `python setup.py install` or `python -m pip install -e .`
 
 OR
 
