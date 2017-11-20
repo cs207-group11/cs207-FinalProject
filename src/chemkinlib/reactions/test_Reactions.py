@@ -63,6 +63,11 @@ def test_Reaction_set_concentrations(test_base_reaction):
     test_base_reaction.set_concentrations({'H2':1, 'OH':2, 'H2O':3, 'H':4})
     assert (test_base_reaction.concentrations == expected).all()
 
+def test_Reaction_set_concentrations_invalid(test_base_reaction):
+    """Test setting reaction with invalid concentrations"""
+    with pytest.raises(KeyError):
+        test_base_reaction.set_concentrations({'H2':1, 'CH4':2, 'H2O':3, 'H':4})
+
 def test_Reaction_set_neg_concentrations(test_base_reaction):
     """Test setting reaction with negative concentrations"""
     with pytest.raises(ValueError):
