@@ -222,7 +222,7 @@ class ReactionParser():
         nasa_coeffs : numpy.ndarray
             nasa coefficients for species in reaction
         """
-        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeff.sqlite')
+        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeffs.sqlite')
         cursor = db.cursor()
 
         if temp_range not in ['high', 'low']:
@@ -257,7 +257,7 @@ class ReactionParser():
         T_mid : float
             mid T value
         """
-        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeff.sqlite')
+        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeffs.sqlite')
         cursor = db.cursor()
         cursor.execute('''SELECT TLOW FROM HIGH WHERE SPECIES_NAME = ?''', (species_name,))
         Tmid = cursor.fetchone()[0]
