@@ -5,6 +5,7 @@ import numpy
 
 from chemkinlib.reactions import Reactions, ReactionRateCoeffs
 
+
 class ReactionSystemError(Exception):
     """Class for ReactionSystem-related errors."""
     pass
