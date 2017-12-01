@@ -2,6 +2,10 @@
 
 """Test module for Visualizer."""
 
+from graphviz import Digraph
+import random
+from moviepy.editor import *
+import numpy as np
 import os.path
 import pytest
 from chemkinlib.utils import visualizer
