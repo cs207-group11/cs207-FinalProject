@@ -6,6 +6,7 @@ import os
 from chemkinlib.utils import Parser
 from chemkinlib.reactions import ReactionSystems
 from chemkinlib.config import DATA_DIRECTORY
+import numpy
 
 # USER INPUT: reaction (xml) file
 xml_filename = os.path.join(DATA_DIRECTORY, "rxnset_long.xml")
@@ -22,6 +23,11 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                         parser.NASA_poly_coefs,
                         temperature,
                         concentration)
+
+for i in range(10):
+    dt = 0.001
+    rxnsys.step(dt)
+
 
 # Compute and sort reaction rates
 rxnrates_dict = rxnsys.sort_reaction_rates()

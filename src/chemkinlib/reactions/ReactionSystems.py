@@ -5,6 +5,8 @@ import numpy
 
 from chemkinlib.reactions import Reactions, ReactionRateCoeffs
 
+from scipy.integrate import ode
+
 class ReactionSystemError(Exception):
     """Class for ReactionSystem-related errors."""
     pass
@@ -48,7 +50,13 @@ class ReactionSystem(object):
             
             if isinstance(r, Reactions.ReversibleReaction):
                 r.set_NASA_poly_coefs(self.NASA_matrix)
-           
+
+        self.concentrations = reaction_list[0].concentrations
+        # ODE integrator
+        self.r = ode(self.compute_reaction_rate).set_integrator("vode")
+        self.r.set_initial_value(self.concentrations, 0)
+
+
     def get_reaction_rate(self):
         """Fetches reaction rate for each reaction.
 
@@ -69,7 +77,8 @@ class ReactionSystem(object):
 
         for i in range(len(rxnrate)):
             rxn_rates_dict[list_species_ordered[i]] = rxnrate[i]
-         
+
+
         return rxn_rates_dict
 
     def get_nasa_matrix(self, NASA_poly_coef):
@@ -96,3 +105,17 @@ class ReactionSystem(object):
             else:
                 NASA[specie] = specie_dict["high"]
         return NASA
+
+
+    def compute_reaction_rate(self, a, concentrations):
+        #update the concentration of the species in each reaction and also in the system
+        for r in self.reaction_list:
+            r.set_concentrations_from_array(concentrations)
+        self.concentrations = concentrations
+        return self.get_reaction_rate()
+
+
+    def step(self, dt):
+        ##do a step of length dt
+        self.r.integrate(self.r.t + dt)
+        print("current time", self.r.t, "current concentration", self.r.y)
