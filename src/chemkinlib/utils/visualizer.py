@@ -3,6 +3,7 @@ from graphviz import Digraph
 import random
 from moviepy.editor import *
 import numpy as np
+import os.path
 
 class ReactionPathDiagram():
     """
@@ -23,14 +24,27 @@ class ReactionPathDiagram():
     def __init__(self, target, obj, integrate=False, time=None, cluster=False):
         #Get unique species of the system from other class function
         self.unique_species = obj.get_unique_species()
+        
         #Get system reaction types from other class function
         self.types = obj.get_reaction_types()
+        
         #Get reactant species of the system from other class function
         self.reactants = obj.get_reaction_species()
-        #Get reactant concentrations of the system from other class function
-        self.reactant_concentrations = obj.get_reactant_concentrations()
+        
         #Get product species of the system from other class function
         self.products = obj.get_product_species()
+
+        #Check if No# of Reactions consistent with No# of Specie Lists
+        if len(self.reactants)!=len(self.products) or len(self.products)!=len(self.types):
+            raise ValueError("No# of reaction system elements must be consistent.")
+        
+        #Get reactant concentrations of the system from other class function
+        self.reactant_concentrations = obj.get_reactant_concentrations()
+        
+        #Check if Reactant Concentrations are Positive
+        if sum([1 if i[1]<0 else 0 for i in self.reactant_concentrations.items()])!=0:
+            raise ValueError("Specie Concentrations must be positive.")
+        
         #If integrate flag set, get product concentrations and reaction rates at 'time', else constant defined by 
         #user and final reaction rates.
         if integrate==True:
@@ -38,35 +52,67 @@ class ReactionPathDiagram():
         else:
             self.product_concentrations = obj.get_product_concentrations()
             self.reaction_rates = obj.get_reaction_rates()
-        #Define Connections Variable
+            
+        #Check if Product Concentrations are Positive    
+        if sum([1 if i[1]<0 else 0 for i in self.product_concentrations.items()])!=0:
+            raise ValueError("Specie Concentrations must be positive.")
+            
+        self.fitted = False
+        self.connected = False
         self.connections = []
-        self.reac_graph = Digraph(target, format='png')
-        self.reac_graph.attr('node', shape='doublecircle')
-        self.reac_graph.attr(color='lightgrey')
-        self.reac_graph.attr(size='20,20!')
-        self.reac_graph.attr(label='Reaction Path Diagram')
-        self.prod_graph = Digraph('subgraph')
-        self.prod_graph.attr(size='20,20!')
-        self.color_index = self.initialize_color_index()
-        self.arrow_max_width = 5
-        self.tag_reactant = " | R"
-        self.tag_product = " | P "
+        if cluster :
+            self.cluster = True
+            self.graph = Digraph(target, format='png')
+            self.graph.attr('node', shape='doublecircle')
+            self.graph.attr(label='Reaction Path Diagram')
+            self.graph.attr(size='20,20!')
+            self.color_index = self.initialize_color_index()
+            self.arrow_max_width = 5
+            self.tag_reactant = " | R"
+            self.tag_product = " | P "
+        else:
+            self.cluster = False
+            self.reac_graph = Digraph(target, format='png')
+            self.reac_graph.attr('node', shape='doublecircle')
+            self.reac_graph.attr(color='lightgrey')
+            self.reac_graph.attr(size='20,20!')
+            self.reac_graph.attr(label='Reaction Path Diagram')
+            self.prod_graph = Digraph('subgraph')
+            self.prod_graph.attr(size='20,20!')
+            self.color_index = self.initialize_color_index()
+            self.arrow_max_width = 5
+            self.tag_reactant = " | R"
+            self.tag_product = " | P "
     """
         
     def __init__(self, target, unique_species, types, reac_species,
                  prod_species, reac_rates, reac_concentrations,
                  prod_concentrations, integrate, time=None, cluster=False):
+        
         self.unique_species = unique_species
         self.types = types
         self.reactants = reac_species
-        self.reactant_concentrations = reac_concentrations
         self.products = prod_species
+        self.reactant_concentrations = reac_concentrations
+        
+        if len(self.reactants)!=len(self.products) or len(self.products)!=len(self.types):
+            raise ValueError("No# of reaction system elements must be consistent.")
+        
+        if sum([1 if i[1]<0 else 0 for i in self.reactant_concentrations.items()])!=0:
+            raise ValueError("Specie Concentrations must be positive.")
+        
         #If integrate flag set, get product concentrations at 'time', else constant defined by user.
         if integrate==True:
             self.product_concentrations, self.reaction_rates = self.calculate_product_concentrations(time)
         else:
             self.product_concentrations = prod_concentrations
             self.reaction_rates = reac_rates
+            
+        if sum([1 if i[1]<0 else 0 for i in self.product_concentrations.items()])!=0:
+            raise ValueError("Specie Concentrations must be positive.")
+        
+        self.fitted = False
+        self.connected = False
         self.connections = []
         if cluster :
             self.cluster = True
@@ -116,6 +162,8 @@ class ReactionPathDiagram():
                     connection = (i, j, temp_type, temp_reac_rate, temp_prod_rate, index)
                     self.connections.append(connection)
         
+        self.fitted = True
+        
     def connect(self, graphics_dict={'node_color':False,'rate':True, 'arrow_size':False,
                                      'arrow_color':True,'init_con':True,'prod_con': False},
                                         size=1, separate=False):
@@ -148,6 +196,13 @@ class ReactionPathDiagram():
         ---------------
         graph.connect(graphics_dict, time=None, size=1, separate = True)
         """
+        #Check if graph connected
+        if self.fitted == False:
+            raise AttributeError("Please call fit() method first.")
+            
+        #Check if graphics dictionary is in readable form    
+        if sum([0 if (i[1]==True or i[1]==False) else 1 for i in graphics_dict.items()])!=0:
+            raise ValueError("Graphics Dictionary must contain only True (1) or False (0) values.")
         
         #Display Product Concentration if True else constant
         if graphics_dict['prod_con']==True:
@@ -185,6 +240,8 @@ class ReactionPathDiagram():
         if separate and not self.cluster:
             self.reac_graph.subgraph(self.prod_graph) 
             
+        self.connected = True
+            
     def build_nodes_cluster(self, graphics_dict, separate, reac_conc, prod_conc, reac_color, prod_color):
         """
         Helper method to build nodes with specific concentrations and graphics in cluster formation.
@@ -207,8 +264,9 @@ class ReactionPathDiagram():
         reac_color = "Green", pre-defined
         prod_color = "Red", pre-defined
         """
+        #Check if graph needs to be separated
         if separate:
-            
+            #Define Reactant Cluster
             with self.graph.subgraph(name='cluster_reactant') as c:
                 c.attr(color=reac_color)
                 c.attr(label='Reactants')
@@ -217,7 +275,7 @@ class ReactionPathDiagram():
                         c.node(specie+self.tag_reactant, **{'width':str(reac_conc[specie]), 'height':str(reac_conc[specie])}, color=reac_color)
                     else:
                         c.node(specie+self.tag_reactant, **{'width':str(reac_conc[specie]), 'height':str(reac_conc[specie])})
-            
+            #Define Product Cluster
             with self.graph.subgraph(name='cluster_product') as c:
                 c.attr(color=prod_color)
                 c.attr(label='Products')
@@ -227,6 +285,7 @@ class ReactionPathDiagram():
                     else:
                         c.node(specie+self.tag_product, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])})
         else:
+            #Define Single Cluster
             for index, specie in enumerate([i[0] for i in self.unique_species]):
                 if graphics_dict['node_color']==True:
                     self.graph.node(specie, **{'width':str(), 'height':str(reac_conc[specie])}, color=reac_color)
@@ -255,7 +314,9 @@ class ReactionPathDiagram():
         reac_color = "Green", pre-defined
         prod_color = "Red", pre-defined
         """
+        #Check if graph needs to be separated for reactants and products
         if separate:
+            #Define Reactant and Product Nodes
             for index, specie in enumerate([i[0] for i in self.unique_species]):
                 if graphics_dict['node_color']==True:
                     self.reac_graph.node(specie+self.tag_reactant, **{'width':str(reac_conc[specie]), 'height':str(reac_conc[specie])}, color=reac_color)
@@ -263,7 +324,9 @@ class ReactionPathDiagram():
                 else:
                     self.reac_graph.node(specie+self.tag_reactant, **{'width':str(reac_conc[specie]), 'height':str(reac_conc[specie])})
                     self.prod_graph.node(specie+self.tag_product, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])})
+        
         else:
+            #Define Unique Specie Nodes 
             for index, specie in enumerate([i[0] for i in self.unique_species]):
                 if graphics_dict['node_color']==True:
                     self.reac_graph.node(specie, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])}, color=reac_color)
@@ -288,7 +351,10 @@ class ReactionPathDiagram():
         
         connection = (reactant, product, reaction_type, reactant_reaction_rate, product_reaction_rate, reaction_index)
         """
+        #Initiate final graphics dictionary
         graphics = {}
+        
+        #Get connection specific graphics
         for i in graphics_dict.items():
             if i[0]=='rate' and i[1]==True:
                 label = str(connection[3]) + ", " + str(connection[4])
@@ -301,23 +367,29 @@ class ReactionPathDiagram():
                 graphics['penwidth'] = str(abs((connection[3]+connection[4])/(2*max_rate))*self.arrow_max_width)
             elif i[0]=='arrow_color' and i[1]==True:
                 graphics['color'] = self.color_index[connection[5]]
+        
+        #Check for Reversible        
         if connection[2]==True:
             graphics['dir']= 'both'
+            
         return graphics
     
     def initialize_color_index(self):
         """
         Helper method to initialize different colors for each reaction index.
         """
+        #Initialize color dictionary for edges and set random state
         color_dict = {}
         rstate = np.random.RandomState(9000)
         random_func = lambda: rstate.randint(0,255)
+        
+        #Get a number of colors randomly from hexadecimal color representation
         for i in range(25):
             color = '#%02X%02X%02X' % (random_func(),random_func(),random_func())
             color_dict[i] = color
         return color_dict
                                             
-    def plot(self):
+    def plot(self, test=False):
         """
         Method to display and save generated graph.
         
@@ -332,6 +404,10 @@ class ReactionPathDiagram():
         -----------
         graph.plot()
         """
+        #Check if graph connected
+        if self.connected == False:
+            raise AttributeError("Please call connect() method first.")
+            
         #Display and save graph in directory
         if self.cluster:
             self.graph.view()
@@ -360,6 +436,12 @@ class ReactionPathDiagram():
         images = ['results/final1.gv.png','results/final2.gv.png', 'results/final3.gv.png' ]
         graph.create_video(images, "results/video")
         """
+ 
+        #Check if image list is empty
+        if img_list==[]:
+            raise ValueError("Image list empty!")
+            
+        #Create and concatenate image clips
         clips = [ImageClip(img).set_duration(0.5) for img in img_list]
         concat_clip = concatenate_videoclips(clips, method="compose")
         concat_clip.write_videofile(target+".mp4", fps=24)
