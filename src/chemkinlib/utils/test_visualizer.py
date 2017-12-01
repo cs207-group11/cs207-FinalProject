@@ -4,7 +4,7 @@
 
 import os.path
 import pytest
-import visualizer
+from chemkinlib.utils import visualizer
 
 # ======================= TESTS FOR REACTION-PATH-DIAGRAM OBJECT ====================== #
 
