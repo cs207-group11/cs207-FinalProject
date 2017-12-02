@@ -14,7 +14,7 @@ xml_filename = os.path.join(DATA_DIRECTORY, "rxnset_long.xml")
 parser = Parser.ReactionParser(xml_filename)
 
 # USER INPUTS (concentrations and temperatures)
-concentration = ({'H':1, 'H2':1, 'H2O':1, 'H2O2':1, 'HO2':1, 'O':1, "O2":1, "OH":1})
+concentration = ({'H':1, 'H2':1, 'H2O':0, 'H2O2':1, 'HO2':1, 'O':1, "O2":1, "OH":1})
 temperature = 1000
 
 
@@ -24,9 +24,11 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                         temperature,
                         concentration)
 
+#compute the concentration change with timestep
 for i in range(10):
     dt = 0.001
-    rxnsys.step(dt)
+    print(rxnsys.step(dt))
+
 
 
 # Compute and sort reaction rates
