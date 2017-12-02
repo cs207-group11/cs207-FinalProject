@@ -52,8 +52,8 @@ class ReactionSystem(object):
                 r.set_NASA_poly_coefs(self.NASA_matrix)
 
         self.concentrations = reaction_list[0].concentrations
-        # ODE integrator
-        self.r = ode(self.compute_reaction_rate).set_integrator("vode")
+        # ODE integrator possible choices of solver: dopri5, dop853(both are explicit ruggi-kutta method) vode, zvode
+        self.r = ode(self.compute_reaction_rate).set_integrator("dop853")
         self.r.set_initial_value(self.concentrations, 0)
 
 
@@ -71,6 +71,13 @@ class ReactionSystem(object):
         return rxnrates
 
     def sort_reaction_rates(self):
+        """
+        sort the reaction rate and put it into dictionary format
+
+        RETURNS:
+        --------
+        rxn_rates_dict: The sorted dictionary of reaction rate
+        """
         rxn_rates_dict = {}
         list_species_ordered = list(self.involved_species)
         rxnrate = self.get_reaction_rate()
@@ -108,6 +115,22 @@ class ReactionSystem(object):
 
 
     def compute_reaction_rate(self, a, concentrations):
+        '''
+        Ordinary differential equation for the ODE solver. It gets the current concentration,
+        modifies the concentration in each reaction and computes the current reaction rate(first-order derivative)
+        INPUTS:
+        -------
+        a : float
+            placeholder of time to match the format of the ode solver.
+            In our ODE the derivative doesn't depend on the current time, but only on the current state(concentration)
+        concentration: list[float]
+            current state (current concentration)
+
+        RETURNS:
+        --------
+        self.get_reaction_rate() : tuple
+            current reaction rate
+        '''
         #update the concentration of the species in each reaction and also in the system
         for r in self.reaction_list:
             r.set_concentrations_from_array(concentrations)
@@ -116,6 +139,18 @@ class ReactionSystem(object):
 
 
     def step(self, dt):
-        ##do a step of length dt
+        '''
+        Solve the ODE， get the state after dt time
+
+        INPUTS:
+        -------
+        dt : float
+            timestep of the next state
+
+        RETURNS:
+        --------
+        (self.r.t, self.r.y) : tuple
+            current time and current concentration
+        '''
         self.r.integrate(self.r.t + dt)
-        print("current time", self.r.t, "current concentration", self.r.y)
+        return self.r.t, self.r.y
