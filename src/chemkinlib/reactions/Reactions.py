@@ -5,7 +5,9 @@ import numpy
 
 from chemkinlib.reactions import ReactionRateCoeffs
 
+
 class ReactionError(Exception):
+    """Class for Reaction-related errors."""
     pass
 
 class Reaction(object):
@@ -14,7 +16,7 @@ class Reaction(object):
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list,
                  rate_coeffs_components, reactant_stoich_coeffs, product_stoich_coeffs):
         """
-        Initializes Reaction
+        Initializes Reaction.
     
         INPUTS:
         -------
@@ -22,17 +24,20 @@ class Reaction(object):
             type of reaction (e.g. "Elementary")
         is_reversible : bool
             True if reaction is reversible
-        rxn_equation : str
-            string representation of reaction equation
-        species_list : list
-            list of chemical species from original xml file (useful for ordering)
         rate_coeffs_components : dict
             dictionary of components (e.g. 'A', 'b', and/or 'E')
             to compute reaction rate coefficients
+        rxn_equation : str
+            string representation of reaction equation
         reactant_stoich_coeffs : dict
             dictionary of integers for reactant stoichiometric coefficients
         product_stoich_coeffs : dict
             dictionary of integers for product stoichiometric coefficients
+        unique_species : list
+            list of unique chemical species from original xml file (could be a bunch
+            of reactions sometimes containing common species)
+        species_list : list
+            list of chemical species from original xml file (useful for ordering)
 
         ATTRIBUTES:
         -----------
@@ -127,6 +132,13 @@ class Reaction(object):
         -------
         X : dict 
             dictionary with species and corresponding concentrations
+
+        NOTES:
+        ------
+        PRE:
+            - Raises KeyError if input dictionary of species and concentrations
+                contains name of species that was not in original xml file
+            - Raises ValueError if any of concentrations are negative
         """
         try:
             ordered_concentrations = self.order_dictionaries(X)
@@ -162,7 +174,6 @@ class Reaction(object):
             list of dictionary's keys in order of species_list
         """
         index_map = {v: i for i, v in enumerate(self.species_list)}
-        #print(index_map)
         sorted_tuple_list = sorted(dictionary.items(), key=lambda pair: index_map[pair[0]])
         list_of_interest = [element[1] for element in sorted_tuple_list]
         return list_of_interest
@@ -174,6 +185,11 @@ class Reaction(object):
         --------
         k : numeric type (or list of numeric type)
             Reaction rate coefficient
+
+        NOTES:
+        ------
+        POST:
+            - Raises NotImplementedError (user must define this function)
         """
         raise NotImplementedError
 
@@ -184,6 +200,11 @@ class Reaction(object):
         --------
         omega_array : numpy.ndarray
             Array of progress rates of reaction
+
+        NOTES:
+        ------
+        POST:
+            - Raises NotImplementedError (user must define this function)
         """
         raise NotImplementedError
         
@@ -198,6 +219,8 @@ class Reaction(object):
         NOTES
         -----
         POST:
+            - Raises ValueError if reactant or product stoichiometric coefficients
+                are negative
             - Raises ReactionError if compute_reaction_rate_coeff nor compute_progress_rate
                 has not been implemented. This Reaction class is meant to serve as a framework
                 for specific types of reactions!
@@ -234,6 +257,14 @@ class IrreversibleReaction(Reaction):
     """Class for irreversible elementary reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
+        """Initializes IrreversibleReaction.
+
+        NOTES:
+        ------
+        PRE:
+            - Raises IrreversibleReactionError if reaction type is not irreversible OR if reaction
+                is not elementary (must satisfy both!)
+        """
         super(IrreversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation,
                                                    species_list, rate_coeffs_components,
                                                    reactant_stoich_coeffs, product_stoich_coeffs)
@@ -272,6 +303,11 @@ class IrreversibleReaction(Reaction):
         --------
         omega_array : numpy.ndarray
             Array of progress rates of reaction
+
+        NOTES:
+        ------
+        PRE:
+            - Raises ValueError if concentrations have not been set
         """
         T = self.temperature
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
@@ -296,6 +332,14 @@ class ReversibleReaction(Reaction):
     """Class for reversible reaction"""
     def __init__(self, rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs):
+        """Initializes ReversibleReaction.
+
+        NOTES:
+        ------
+        PRE:
+            - Raises ReversibleReactionError if reaction type is not reversible OR if reaction
+                is not elementary (must satisfy both!)
+        """
         super(ReversibleReaction, self).__init__(rxn_type, is_reversible, rxn_equation, species_list, rate_coeffs_components,
                  reactant_stoich_coeffs, product_stoich_coeffs)
 
@@ -319,6 +363,13 @@ class ReversibleReaction(Reaction):
             forward reaction rate coefficient
         kb : numeric type (or list of numeric type)
             backward reaction rate coefficient
+
+        NOTES:
+        ------
+        PRE:
+            - Raises ValueError if NASA polynomial coefficients have not been
+                set before trying to compute reaction rate coefficients
+                (See class function set_NASA_poly_coefs())
         """
         coeffs = ReactionRateCoeffs.ReactionCoeff(self.rate_coeffs_components, T=self.temperature)
         self.forward_rxn_rate_coeff = coeffs.k
@@ -336,38 +387,24 @@ class ReversibleReaction(Reaction):
         return self.forward_rxn_rate_coeff, self.backward_rxn_rate_coeff
 
     def set_NASA_poly_coefs(self, coefs):
-        """Sets NASA polynomial coefficients."""
-        #self.NASA_poly_coefs = coefs #numpy.array(self.order_dictionaries(coefs))
-        #print(list(self.species_list.keys()))
-        #print(self.NASA_poly_coefs)
-
-
+        """Sets NASA polynomial coefficients.
+        
+        INPUTS:
+        -------
+        coefs : dict
+            dictionary of NASA polynomial coefficients
+            (For format, see Parser class' get_NASA_poly_coefs() function)
+        """
+        # order NASA polynomial coefficients by species (order specified by species_list)
         index_map = {v: i for i, v in enumerate(self.species_list)}
         sorted_tuple_list = sorted(coefs.items(), key=lambda pair: index_map[pair[0]])
         list_of_interest = [element[1] for element in sorted_tuple_list]
-
+        
+        # lists of high and low T polynomial coefficients IN ORDER of species
         list_of_interest = numpy.array(list_of_interest)
-       # print(list_of_interest)
 
         self.NASA_poly_coefs_dict = coefs
         self.NASA_poly_coefs = list_of_interest
-
-
-        #c = self.order_dictionaries(coefs)
-        #print(test)
-        #self.NASA_poly_coefs = coefs
-        #print(coefs)
-
-        #self.NASA_poly_coefs = []
-
-        # species_list = list(self.species_list.keys())
-        # print(species_list)
-        # for i in range(len(species_list)):
-        #     self.NASA_poly_coefs.append(coefs[species_list[i]])
-
-        #self.NASA_poly_coefs = numpy.array(self.NASA_poly_coefs)
-        # print(self.NASA_poly_coefs)
-        # sys.exit()
 
     def compute_progress_rate(self, T=None):
         """Computes progress rates of reaction.
@@ -381,6 +418,11 @@ class ReversibleReaction(Reaction):
         --------
         omega_array : numpy.ndarray
             Array of progress rates of reaction
+
+        NOTES:
+        ------
+        PRE:
+            - Raises ValueError if concentrations have not been not set
         """
 
         reactant_stoich_coeffs = numpy.array(self.order_dictionaries(self.reactant_stoich_coeffs))
@@ -396,10 +438,10 @@ class ReversibleReaction(Reaction):
         concen_powered_j_forward = concen_array ** reactant_stoich_coeffs
         concen_powered_j_backward = concen_array ** product_stoich_coeffs
 
-        #compute the forward part
+        #compute the forward progress rate
         progress_rate_forward = self.forward_rxn_rate_coeff * numpy.prod(concen_powered_j_forward)
 
-        #compute the backward part
+        #compute the backward progress rate
         progress_rate_backward = self.backward_rxn_rate_coeff * numpy.prod(concen_powered_j_backward)
 
         #code for debugging, save for future use
