@@ -23,6 +23,11 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                                   temperature,
                                   concentration)
 
+#compute the concentration change with timestep
+for i in range(10):
+    dt = 0.001
+    print(rxnsys.step(dt))
+
 # Compute and sort reaction rates
 rxnrates_dict = rxnsys.sort_reaction_rates()
 
