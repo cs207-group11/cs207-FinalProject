@@ -126,7 +126,7 @@ class Reaction(object):
         self.temperature = T
 
     def set_concentrations(self, X):
-        """Sets concentrations of the reaction
+        """Sets concentrations of the reaction from a dictionary
 
         INPUTS:
         -------
@@ -149,6 +149,14 @@ class Reaction(object):
             raise ValueError("You cannot have negative concentrations!")
         
         self.concentrations = numpy.array(ordered_concentrations)
+
+    def set_concentrations_from_array(self, c):
+        """Set the concentrations of the reaction from an array
+
+        :param c:
+        :return: None
+        """
+        self.concentrations = c
 
     def order_dictionaries(self, dictionary):
         """Helper function to order dictionaries (of concentrations,
