@@ -8,6 +8,7 @@ import os
 import imageio
 imageio.plugins.ffmpeg.download()
 from chemkinlib.utils import Parser
+from moviepy.editor import *
 from chemkinlib.utils import visualizer
 from chemkinlib.reactions import ReactionSystems
 from chemkinlib.config import DATA_DIRECTORY

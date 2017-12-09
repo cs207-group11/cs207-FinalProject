@@ -1,11 +1,13 @@
 
 from graphviz import Digraph
 import random
+import imageio
+imageio.plugins.ffmpeg.download()
 from moviepy.editor import *
 import numpy as np
 import os.path
 from chemkinlib.reactions import ReactionSystems
-import imageio
+
 
 
 class ReactionPathDiagram():
