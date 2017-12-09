@@ -4,6 +4,7 @@ import random
 from moviepy.editor import *
 import numpy as np
 import os.path
+from chemkinlib.reactions import ReactionSystems
 
 class ReactionPathDiagram():
     """
@@ -20,54 +21,70 @@ class ReactionPathDiagram():
     - ReactionPathDiagram("\results\target_file_location", obj_Reaction)
     - ReactionPathDiagram("\results\target_file_location", obj_Reaction_System)
     """
-    """
+
     def __init__(self, target, obj, integrate=False, time=None, cluster=False):
         #Get unique species of the system from other class function
-        self.unique_species = obj.get_unique_species()
+        self.unique_species = [i[0] for i in obj.involved_species.items()]
         
         #Get system reaction types from other class function
-        self.types = obj.get_reaction_types()
+        self.types = [i.is_reversible for i in obj.reaction_list]
         
+        self.reactants = []
         #Get reactant species of the system from other class function
-        self.reactants = obj.get_reaction_species()
-        
+        for i in obj.reaction_list:
+            temp_reaction = []
+            for j in i.reactant_stoich_coeffs.items():
+                temp_reaction.append(j[0])
+            self.reactants.append(temp_reaction)
+            
+        self.products = []
         #Get product species of the system from other class function
-        self.products = obj.get_product_species()
+        for i in obj.reaction_list:
+            temp_reaction = []
+            for j in i.product_stoich_coeffs.items():
+                temp_reaction.append(j[0])
+            self.products.append(temp_reaction)
 
         #Check if No# of Reactions consistent with No# of Specie Lists
         if len(self.reactants)!=len(self.products) or len(self.products)!=len(self.types):
             raise ValueError("No# of reaction system elements must be consistent.")
         
         #Get reactant concentrations of the system from other class function
-        self.reactant_concentrations = obj.get_reactant_concentrations()
+        self.reactant_concentrations = obj.vis_concentrations
         
         #Check if Reactant Concentrations are Positive
         if sum([1 if i[1]<0 else 0 for i in self.reactant_concentrations.items()])!=0:
             raise ValueError("Specie Concentrations must be positive.")
-        
+
+        self.max_node_size = 5
+        self.arrow_max_width = 5
         #If integrate flag set, get product concentrations and reaction rates at 'time', else constant defined by 
         #user and final reaction rates.
         if integrate==True:
-            self.product_concentrations, self.reaction_rates = self.calculate_product_concentrations(time)
+            temp_conc = obj.step(time)[1]
+            self.product_concentrations = dict([(i,temp_conc[ind]) for ind, i in enumerate(self.unique_species)])
+            temp_rates = obj.get_reaction_rate()
+            self.reaction_rates = dict([(i,temp_rates[ind]) for ind, i in enumerate(self.unique_species)])
         else:
-            self.product_concentrations = obj.get_product_concentrations()
-            self.reaction_rates = obj.get_reaction_rates()
-            
-        #Check if Product Concentrations are Positive    
+            self.product_concentrations = dict([(i,self.max_node_size) for ind, i in enumerate(self.unique_species)])
+            temp_rates = obj.get_reaction_rate()
+            self.reaction_rates = dict([(i,temp_rates[ind]) for ind, i in enumerate(self.unique_species)])
+        """
+        #Check if Reactant Concentrations are Positive
         if sum([1 if i[1]<0 else 0 for i in self.product_concentrations.items()])!=0:
             raise ValueError("Specie Concentrations must be positive.")
-            
+        """
         self.fitted = False
         self.connected = False
         self.connections = []
+        print(target)
         if cluster :
             self.cluster = True
             self.graph = Digraph(target, format='png')
             self.graph.attr('node', shape='doublecircle')
             self.graph.attr(label='Reaction Path Diagram')
-            self.graph.attr(size='20,20!')
+            #self.graph.attr(size='20,20!')
             self.color_index = self.initialize_color_index()
-            self.arrow_max_width = 5
             self.tag_reactant = " | R"
             self.tag_product = " | P "
         else:
@@ -78,9 +95,8 @@ class ReactionPathDiagram():
             self.reac_graph.attr(size='20,20!')
             self.reac_graph.attr(label='Reaction Path Diagram')
             self.prod_graph = Digraph('subgraph')
-            self.prod_graph.attr(size='20,20!')
+            #self.prod_graph.attr(size='20,20!')
             self.color_index = self.initialize_color_index()
-            self.arrow_max_width = 5
             self.tag_reactant = " | R"
             self.tag_product = " | P "
     """
@@ -137,7 +153,7 @@ class ReactionPathDiagram():
             self.arrow_max_width = 5
             self.tag_reactant = " | R"
             self.tag_product = " | P "
-    
+    """
     def fit(self):
         """
         Method to define graphical nodes for each unique specie at the reactant and 
@@ -166,7 +182,7 @@ class ReactionPathDiagram():
         
     def connect(self, graphics_dict={'node_color':False,'rate':True, 'arrow_size':False,
                                      'arrow_color':True,'init_con':True,'prod_con': False},
-                                        size=1, separate=False):
+                                        size=5, separate=False):
         """
         Method to make defined connections between system node with specific graphics.
         
@@ -215,12 +231,16 @@ class ReactionPathDiagram():
             reac_conc = self.reactant_concentrations
         else:
             reac_conc = dict([(i,size) for ind, i in enumerate(self.unique_species)])
-              
+
+        print (reac_conc)
+        print(prod_conc)
+
         #Build Nodes
         if self.cluster:
             self.build_nodes_cluster(graphics_dict, separate, reac_conc, prod_conc, reac_color="Green", prod_color="Red")
         else:
             self.build_nodes_free(graphics_dict, separate, reac_conc, prod_conc, reac_color="Green", prod_color="Red")
+
         
         #Build Connections
         for connection in self.connections:
@@ -264,33 +284,41 @@ class ReactionPathDiagram():
         reac_color = "Green", pre-defined
         prod_color = "Red", pre-defined
         """
+        max_conc_reac = max(reac_conc.items(), key=lambda x: x[1])[1]
+        max_conc_prod = max(prod_conc.items(), key=lambda x: x[1])[1]
         #Check if graph needs to be separated
         if separate:
             #Define Reactant Cluster
             with self.graph.subgraph(name='cluster_reactant') as c:
                 c.attr(color=reac_color)
                 c.attr(label='Reactants')
-                for index, specie in enumerate([i[0] for i in self.unique_species]):
+                for index, specie in enumerate(self.unique_species):
+                    temp_size = str((reac_conc[specie]/max_conc_reac)*self.max_node_size)
+                    #print("reactant", specie, temp_size)
                     if graphics_dict['node_color']==True:
-                        c.node(specie+self.tag_reactant, **{'width':str(reac_conc[specie]), 'height':str(reac_conc[specie])}, color=reac_color)
+                        c.node(specie+self.tag_reactant, **{'width':temp_size, 'height':temp_size}, color=reac_color)
                     else:
-                        c.node(specie+self.tag_reactant, **{'width':str(reac_conc[specie]), 'height':str(reac_conc[specie])})
+                        c.node(specie+self.tag_reactant, **{'width':temp_size, 'height':temp_size})
             #Define Product Cluster
             with self.graph.subgraph(name='cluster_product') as c:
                 c.attr(color=prod_color)
                 c.attr(label='Products')
-                for index, specie in enumerate([i[0] for i in self.unique_species]):
+                for index, specie in enumerate(self.unique_species):
+                    temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
+                    #print("product", specie, temp_size)
                     if graphics_dict['node_color']==True:
-                        c.node(specie+self.tag_product, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])}, color=prod_color)
+                        c.node(specie+self.tag_product, **{'width':temp_size, 'height':temp_size}, color=prod_color)
                     else:
-                        c.node(specie+self.tag_product, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])})
+                        c.node(specie+self.tag_product, **{'width':temp_size, 'height':temp_size})
         else:
             #Define Single Cluster
-            for index, specie in enumerate([i[0] for i in self.unique_species]):
+            for index, specie in enumerate(self.unique_species):
+                temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
+                print(specie, temp_size)
                 if graphics_dict['node_color']==True:
-                    self.graph.node(specie, **{'width':str(), 'height':str(reac_conc[specie])}, color=reac_color)
+                    self.graph.node(specie, **{'width':temp_size, 'height':temp_size}, color=reac_color)
                 else:
-                    self.graph.node(specie, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])})
+                    self.graph.node(specie, **{'width':temp_size, 'height':temp_size})
         
     def build_nodes_free(self, graphics_dict, separate, reac_conc, prod_conc, reac_color, prod_color):
         """
@@ -314,24 +342,29 @@ class ReactionPathDiagram():
         reac_color = "Green", pre-defined
         prod_color = "Red", pre-defined
         """
+        max_conc_reac = max(reac_conc.items(), key=lambda x: x[1])[1]
+        max_conc_prod = max(prod_conc.items(), key=lambda x: x[1])[1]
+
         #Check if graph needs to be separated for reactants and products
         if separate:
-            #Define Reactant and Product Nodes
-            for index, specie in enumerate([i[0] for i in self.unique_species]):
+            for index, specie in enumerate(self.unique_species):
                 if graphics_dict['node_color']==True:
-                    self.reac_graph.node(specie+self.tag_reactant, **{'width':str(reac_conc[specie]), 'height':str(reac_conc[specie])}, color=reac_color)
-                    self.prod_graph.node(specie+self.tag_product, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])}, color=prod_color)
+                    temp_size = str((reac_conc[specie]/max_conc_reac)*self.max_node_size)
+                    self.reac_graph.node(specie+self.tag_reactant, **{'width':temp_size, 'height':temp_size}, color=reac_color)
+                    temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
+                    self.prod_graph.node(specie+self.tag_product, **{'width':temp_size, 'height':temp_size}, color=prod_color)
                 else:
-                    self.reac_graph.node(specie+self.tag_reactant, **{'width':str(reac_conc[specie]), 'height':str(reac_conc[specie])})
-                    self.prod_graph.node(specie+self.tag_product, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])})
-        
+                    temp_size = str((reac_conc[specie]/max_conc_reac)*self.max_node_size)
+                    self.reac_graph.node(specie+self.tag_reactant, **{'width':temp_size, 'height':temp_size})
+                    temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
+                    self.prod_graph.node(specie+self.tag_product, **{'width':temp_size, 'height':temp_size})
         else:
-            #Define Unique Specie Nodes 
-            for index, specie in enumerate([i[0] for i in self.unique_species]):
+            for index, specie in enumerate(self.unique_species):
+                temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
                 if graphics_dict['node_color']==True:
-                    self.reac_graph.node(specie, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])}, color=reac_color)
+                    self.reac_graph.node(specie, **{'width':temp_size, 'height':temp_size}, color=reac_color)
                 else:
-                    self.reac_graph.node(specie, **{'width':str(prod_conc[specie]), 'height':str(prod_conc[specie])})
+                    self.reac_graph.node(specie, **{'width':temp_size, 'height':temp_size})
         
     def get_graphics(self, graphics_dict, connection):
         """
@@ -407,7 +440,6 @@ class ReactionPathDiagram():
         #Check if graph connected
         if self.connected == False:
             raise AttributeError("Please call connect() method first.")
-            
         #Display and save graph in directory
         if self.cluster:
             self.graph.view()
@@ -445,13 +477,3 @@ class ReactionPathDiagram():
         clips = [ImageClip(img).set_duration(0.5) for img in img_list]
         concat_clip = concatenate_videoclips(clips, method="compose")
         concat_clip.write_videofile(target+".mp4", fps=24)
-        
-    def calculate_product_concentrations(self, time):
-        #Method to calculate specie concentration at specific time interval using integrator
-        #Optional Method
-        pass
-        
-    def integrator(self, time, concentrations, reaction_rate_coeff, reaction_rates):
-        #Method to implement integration
-        #Optional Method
-        pass

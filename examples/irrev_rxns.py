@@ -4,6 +4,7 @@
 import os
 
 from chemkinlib.utils import Parser
+from chemkinlib.utils import visualizer
 from chemkinlib.reactions import ReactionSystems
 from chemkinlib.config import DATA_DIRECTORY
 import numpy
@@ -24,12 +25,19 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                         temperature,
                         concentration)
 
+target = "final/results"
+graphics_dict = {'node_color':False,'rate':False,'arrow_size':False,'arrow_color':True,'init_con':True,'prod_con': True}
+
+
 #compute the concentration change with timestep
-for i in range(10):
-    dt = 0.001
-    print(rxnsys.step(dt))
+for i in range(3):
+    graph = visualizer.ReactionPathDiagram(target+str(i), rxnsys, integrate=True, time=1e-15, cluster=True)
+    graph.fit()
+    graph.connect(graphics_dict, size=5, separate = False)
+    graph.plot()
 
-
+imgs = [target+str(i)+".gv.png" for i in range(3)]
+graph.create_video(imgs, target)
 
 # Compute and sort reaction rates
 rxnrates_dict = rxnsys.sort_reaction_rates()
@@ -37,3 +45,7 @@ rxnrates_dict = rxnsys.sort_reaction_rates()
 # display reaction rates by species
 for k, v in rxnrates_dict.items():
     print("d[{0}]/dt : \t {1:e}".format(k, v))
+
+
+
+
