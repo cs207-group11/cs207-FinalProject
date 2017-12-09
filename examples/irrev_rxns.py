@@ -2,7 +2,8 @@
 """Example of irreversible reaction."""
 
 import os
-
+import imageio
+imageio.plugins.ffmpeg.download()
 from chemkinlib.utils import Parser
 from chemkinlib.utils import visualizer
 from chemkinlib.reactions import ReactionSystems

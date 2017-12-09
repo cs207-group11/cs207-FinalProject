@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="db5fa366-da3d-4222-8fef-151a1758f0e4" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/irrev_rxns.py" afterPath="$PROJECT_DIR$/examples/irrev_rxns.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py" afterPath="$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -14,11 +14,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="600">
-      <file leaf-file-name="irrev_rxns.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="irrev_rxns.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/examples/irrev_rxns.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1139">
-              <caret line="41" column="44" lean-forward="true" selection-start-line="41" selection-start-column="44" selection-end-line="41" selection-end-column="44" />
+            <state relative-caret-position="400">
+              <caret line="10" column="12" lean-forward="true" selection-start-line="10" selection-start-column="12" selection-end-line="10" selection-end-column="12" />
               <folding>
                 <element signature="e#42#51#0" expanded="true" />
               </folding>
@@ -26,12 +26,14 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_visualizer.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test_visualizer.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="200">
-              <caret line="5" column="13" lean-forward="false" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
-              <folding />
+            <state relative-caret-position="360">
+              <caret line="15" column="30" lean-forward="true" selection-start-line="15" selection-start-column="30" selection-end-line="15" selection-end-column="30" />
+              <folding>
+                <element signature="e#37#65#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -73,11 +75,9 @@
       <file leaf-file-name="visualizer.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="11480">
-              <caret line="292" column="40" lean-forward="false" selection-start-line="292" selection-start-column="40" selection-end-line="292" selection-end-column="40" />
-              <folding>
-                <element signature="e#1#29#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="280">
+              <caret line="7" column="0" lean-forward="false" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="14" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -99,10 +99,10 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/chemkinlib/reactions/ReactionSystems.py" />
-        <option value="$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py" />
-        <option value="$PROJECT_DIR$/examples/irrev_rxns.py" />
         <option value="$PROJECT_DIR$/examples/rev_rxns.py" />
         <option value="$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py" />
+        <option value="$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py" />
+        <option value="$PROJECT_DIR$/examples/irrev_rxns.py" />
       </list>
     </option>
   </component>
@@ -306,9 +306,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="11480">
           <caret line="292" column="40" lean-forward="true" selection-start-line="292" selection-start-column="40" selection-end-line="292" selection-end-column="40" />
-          <folding>
-            <element signature="e#1#29#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -316,7 +314,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="200">
           <caret line="5" column="13" lean-forward="false" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
-          <folding />
+          <folding>
+            <element signature="e#37#65#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -362,9 +362,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="11400">
           <caret line="290" column="25" lean-forward="false" selection-start-line="290" selection-start-column="25" selection-end-line="290" selection-end-column="25" />
-          <folding>
-            <element signature="e#1#29#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -386,26 +384,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11480">
-          <caret line="292" column="40" lean-forward="false" selection-start-line="292" selection-start-column="40" selection-end-line="292" selection-end-column="40" />
-          <folding>
-            <element signature="e#1#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/examples/irrev_rxns.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1139">
-          <caret line="41" column="44" lean-forward="true" selection-start-line="41" selection-start-column="44" selection-end-line="41" selection-end-column="44" />
-          <folding>
-            <element signature="e#42#51#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/examples/rev_rxns.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="760">
@@ -416,11 +394,31 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="7" column="0" lean-forward="false" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="5" column="13" lean-forward="false" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
-          <folding />
+        <state relative-caret-position="360">
+          <caret line="15" column="30" lean-forward="true" selection-start-line="15" selection-start-column="30" selection-end-line="15" selection-end-column="30" />
+          <folding>
+            <element signature="e#37#65#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/irrev_rxns.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="400">
+          <caret line="10" column="12" lean-forward="true" selection-start-line="10" selection-start-column="12" selection-end-line="10" selection-end-column="12" />
+          <folding>
+            <element signature="e#42#51#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
