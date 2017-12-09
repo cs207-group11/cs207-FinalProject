@@ -52,6 +52,7 @@ class ReactionSystem(object):
             if isinstance(r, Reactions.ReversibleReaction):
                 r.set_NASA_poly_coefs(self.NASA_matrix)
 
+
         self.concentrations = reaction_list[0].concentrations
         # ODE integrator possible choices of solver: dopri5, dop853(both are explicit ruggi-kutta method) vode, zvode
         self.r = ode(self.compute_reaction_rate).set_integrator("dop853")
