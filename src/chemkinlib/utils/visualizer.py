@@ -102,61 +102,7 @@ class ReactionPathDiagram():
             self.color_index = self.initialize_color_index()
             self.tag_reactant = " | R"
             self.tag_product = " | P "
-    """
-        
-    def __init__(self, target, unique_species, types, reac_species,
-                 prod_species, reac_rates, reac_concentrations,
-                 prod_concentrations, integrate, time=None, cluster=False):
-        
-        self.unique_species = unique_species
-        self.types = types
-        self.reactants = reac_species
-        self.products = prod_species
-        self.reactant_concentrations = reac_concentrations
-        
-        if len(self.reactants)!=len(self.products) or len(self.products)!=len(self.types):
-            raise ValueError("No# of reaction system elements must be consistent.")
-        
-        if sum([1 if i[1]<0 else 0 for i in self.reactant_concentrations.items()])!=0:
-            raise ValueError("Specie Concentrations must be positive.")
-        
-        #If integrate flag set, get product concentrations at 'time', else constant defined by user.
-        if integrate==True:
-            self.product_concentrations, self.reaction_rates = self.calculate_product_concentrations(time)
-        else:
-            self.product_concentrations = prod_concentrations
-            self.reaction_rates = reac_rates
-            
-        if sum([1 if i[1]<0 else 0 for i in self.product_concentrations.items()])!=0:
-            raise ValueError("Specie Concentrations must be positive.")
-        
-        self.fitted = False
-        self.connected = False
-        self.connections = []
-        if cluster :
-            self.cluster = True
-            self.graph = Digraph(target, format='png')
-            self.graph.attr('node', shape='doublecircle')
-            self.graph.attr(label='Reaction Path Diagram')
-            self.graph.attr(size='20,20!')
-            self.color_index = self.initialize_color_index()
-            self.arrow_max_width = 5
-            self.tag_reactant = " | R"
-            self.tag_product = " | P "
-        else:
-            self.cluster = False
-            self.reac_graph = Digraph(target, format='png')
-            self.reac_graph.attr('node', shape='doublecircle')
-            self.reac_graph.attr(color='lightgrey')
-            self.reac_graph.attr(size='20,20!')
-            self.reac_graph.attr(label='Reaction Path Diagram')
-            self.prod_graph = Digraph('subgraph')
-            self.prod_graph.attr(size='20,20!')
-            self.color_index = self.initialize_color_index()
-            self.arrow_max_width = 5
-            self.tag_reactant = " | R"
-            self.tag_product = " | P "
-    """
+
     def fit(self):
         """
         Method to define graphical nodes for each unique specie at the reactant and 
