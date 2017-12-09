@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="db5fa366-da3d-4222-8fef-151a1758f0e4" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/irrev_rxns.py" afterPath="$PROJECT_DIR$/examples/irrev_rxns.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/rev_rxns.py" afterPath="$PROJECT_DIR$/examples/rev_rxns.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/chemkinlib/reactions/ReactionSystems.py" afterPath="$PROJECT_DIR$/src/chemkinlib/reactions/ReactionSystems.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py" afterPath="$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py" afterPath="$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -28,14 +25,12 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_visualizer.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="test_visualizer.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="72" column="25" lean-forward="true" selection-start-line="72" selection-start-column="25" selection-end-line="72" selection-end-column="25" />
-              <folding>
-                <element signature="e#37#65#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="200">
+              <caret line="5" column="13" lean-forward="false" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -74,7 +69,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="visualizer.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="visualizer.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-6437">
@@ -93,6 +88,7 @@
       <find>self.unique_species</find>
       <find>reac_conc</find>
       <find>print</find>
+      <find>moviepy</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -105,10 +101,11 @@
         <option value="$PROJECT_DIR$/src/chemkinlib/utils/visualizer.py" />
         <option value="$PROJECT_DIR$/examples/irrev_rxns.py" />
         <option value="$PROJECT_DIR$/examples/rev_rxns.py" />
+        <option value="$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="7">
     <option name="x" value="789" />
     <option name="y" value="458" />
     <option name="width" value="1400" />
@@ -238,7 +235,7 @@
     <option name="remove_strategy" value="false" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-16" y="-16" width="3872" height="2092" extended-state="6" />
+    <frame x="-16" y="-16" width="3872" height="2092" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17326203" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -332,16 +329,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="72" column="25" lean-forward="true" selection-start-line="72" selection-start-column="25" selection-end-line="72" selection-end-column="25" />
-          <folding>
-            <element signature="e#37#65#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/examples/irrev_rxns.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1160">
@@ -369,6 +356,14 @@
           <folding>
             <element signature="e#1#29#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/chemkinlib/utils/test_visualizer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="200">
+          <caret line="5" column="13" lean-forward="false" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
+          <folding />
         </state>
       </provider>
     </entry>
