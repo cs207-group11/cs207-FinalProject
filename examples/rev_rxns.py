@@ -24,9 +24,10 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                                   concentration)
 
 #compute the concentration change with timestep
-for i in range(10):
-    dt = 0.001
-    print(rxnsys.step(dt))
+for i in range(20):
+    dt = 1e-15
+    print("The concentration after", i, "timestep is")
+    print(list(rxnsys.step(dt)[1]))
 
 # Compute and sort reaction rates
 rxnrates_dict = rxnsys.sort_reaction_rates()

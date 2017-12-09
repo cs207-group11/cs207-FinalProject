@@ -24,10 +24,13 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                         temperature,
                         concentration)
 
+print([i.reactant_stoich_coeffs for i in rxnsys.reaction_list])
+
 #compute the concentration change with timestep
-for i in range(10):
-    dt = 0.001
-    print(rxnsys.step(dt))
+for i in range(20):
+    dt = 1e-15
+    print("The concentration after", i, "timestep is")
+    print(list(rxnsys.step(dt)[1]))
 
 
 
