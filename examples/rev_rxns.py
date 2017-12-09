@@ -27,6 +27,7 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
 target = "final/results"
 graphics_dict = {'node_color':False,'rate':False,'arrow_size':False,'arrow_color':True,'init_con':True,'prod_con': True}
 #compute the concentration change with timestep
+
 for i in range(3):
     graph = visualizer.ReactionPathDiagram(target+str(i), rxnsys, integrate=True, time=1e-15, cluster=True)
     graph.fit()
@@ -35,6 +36,7 @@ for i in range(3):
 
 imgs = [target+str(i)+".gv.png" for i in range(3)]
 graph.create_video(imgs, target)
+
 
 # Compute and sort reaction rates
 rxnrates_dict = rxnsys.sort_reaction_rates()

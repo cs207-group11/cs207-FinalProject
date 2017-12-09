@@ -28,7 +28,6 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
 target = "final/results"
 graphics_dict = {'node_color':False,'rate':False,'arrow_size':False,'arrow_color':True,'init_con':True,'prod_con': True}
 
-
 #compute the concentration change with timestep
 for i in range(3):
     graph = visualizer.ReactionPathDiagram(target+str(i), rxnsys, integrate=True, time=1e-15, cluster=True)
