@@ -44,6 +44,7 @@ class ReactionSystem(object):
 
         # NOTE: Not sure if this is good enough!
         self.involved_species = reaction_list[0].species_list
+        self.vis_concentrations = concentrations
 
         # Set up each reaction
         for r in self.reaction_list:

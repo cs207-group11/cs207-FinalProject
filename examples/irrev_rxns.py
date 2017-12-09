@@ -2,8 +2,8 @@
 """Example of irreversible reaction."""
 
 import os
-
 from chemkinlib.utils import Parser
+from chemkinlib.utils import visualizer
 from chemkinlib.reactions import ReactionSystems
 from chemkinlib.config import DATA_DIRECTORY
 import numpy
@@ -24,15 +24,18 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                         temperature,
                         concentration)
 
-print([i.reactant_stoich_coeffs for i in rxnsys.reaction_list])
+target = "final/results"
+graphics_dict = {'node_color':False,'rate':False,'arrow_size':False,'arrow_color':True,'init_con':True,'prod_con': True}
 
 #compute the concentration change with timestep
-for i in range(20):
-    dt = 1e-15
-    print("The concentration after", i, "timestep is")
-    print(list(rxnsys.step(dt)[1]))
+for i in range(3):
+    graph = visualizer.ReactionPathDiagram(target+str(i), rxnsys, integrate=True, time=1e-15, cluster=True)
+    graph.fit()
+    graph.connect(graphics_dict, size=5, separate = False)
+    graph.plot()
 
-
+imgs = [target+str(i)+".gv.png" for i in range(3)]
+graph.create_video(imgs, target)
 
 # Compute and sort reaction rates
 rxnrates_dict = rxnsys.sort_reaction_rates()
@@ -40,3 +43,7 @@ rxnrates_dict = rxnsys.sort_reaction_rates()
 # display reaction rates by species
 for k, v in rxnrates_dict.items():
     print("d[{0}]/dt : \t {1:e}".format(k, v))
+
+
+
+
