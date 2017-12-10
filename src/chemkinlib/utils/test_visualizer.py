@@ -67,3 +67,20 @@ def test_graphics_dict():
     obj.fit()
     with pytest.raises(ValueError):
         obj.connect(graphics_dict, size=5, separate = False)
+
+def test_graphics():
+    """Test if No# of Reactions consistent with No# of Specie Lists"""
+    xml_filename = os.path.join(DATA_DIRECTORY, "rxnset_long.xml")
+    parser = Parser.ReactionParser(xml_filename)
+    concentration = ({'H':1, 'H2':1, 'H2O':0, 'H2O2':1, 'HO2':1, 'O':1, "O2":1, "OH":1})
+    temperature = 1000
+    rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
+                        parser.NASA_poly_coefs,
+                        temperature,
+                        concentration)
+    target = "final/results"
+    graphics_dict = {'node_color':True,'rate':False,'arrow_size':False,'arrow_color':True,'init_con':True,'prod_con': True}
+    obj = visualizer.ReactionPathDiagram(target, rxnsys, integrate=False, time=None, cluster=False)
+    obj.fit()
+    with pytest.raises(AttributeError):
+        obj.connect(size=5, separate = False)

@@ -128,8 +128,7 @@ class ReactionPathDiagram():
         
         self.fitted = True
         
-    def connect(self, graphics_dict={'node_color':False,'rate':True, 'arrow_size':False,
-                                     'arrow_color':True,'init_con':True,'prod_con': False},
+    def connect(self, graphics_dict=None,
                                         size=5, separate=False):
         """
         Method to make defined connections between system node with specific graphics.
@@ -163,6 +162,9 @@ class ReactionPathDiagram():
         #Check if graph connected
         if self.fitted == False:
             raise AttributeError("Please call fit() method first.")
+
+        if graphics_dict == None:
+            raise AttributeError("Graphics dictionary not passed.")
             
         #Check if graphics dictionary is in readable form    
         if sum([0 if (i[1]==True or i[1]==False) else 1 for i in graphics_dict.items()])!=0:
@@ -186,7 +188,6 @@ class ReactionPathDiagram():
         else:
             self.build_nodes_free(graphics_dict, separate, reac_conc, prod_conc, reac_color="Green", prod_color="Red")
 
-        
         #Build Connections
         for connection in self.connections:
             if separate:
