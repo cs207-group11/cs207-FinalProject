@@ -80,7 +80,6 @@ class ReactionPathDiagram():
         self.fitted = False
         self.connected = False
         self.connections = []
-        print(target)
         if cluster :
             self.cluster = True
             self.graph = Digraph(target, format='png')
@@ -102,61 +101,7 @@ class ReactionPathDiagram():
             self.color_index = self.initialize_color_index()
             self.tag_reactant = " | R"
             self.tag_product = " | P "
-    """
-        
-    def __init__(self, target, unique_species, types, reac_species,
-                 prod_species, reac_rates, reac_concentrations,
-                 prod_concentrations, integrate, time=None, cluster=False):
-        
-        self.unique_species = unique_species
-        self.types = types
-        self.reactants = reac_species
-        self.products = prod_species
-        self.reactant_concentrations = reac_concentrations
-        
-        if len(self.reactants)!=len(self.products) or len(self.products)!=len(self.types):
-            raise ValueError("No# of reaction system elements must be consistent.")
-        
-        if sum([1 if i[1]<0 else 0 for i in self.reactant_concentrations.items()])!=0:
-            raise ValueError("Specie Concentrations must be positive.")
-        
-        #If integrate flag set, get product concentrations at 'time', else constant defined by user.
-        if integrate==True:
-            self.product_concentrations, self.reaction_rates = self.calculate_product_concentrations(time)
-        else:
-            self.product_concentrations = prod_concentrations
-            self.reaction_rates = reac_rates
-            
-        if sum([1 if i[1]<0 else 0 for i in self.product_concentrations.items()])!=0:
-            raise ValueError("Specie Concentrations must be positive.")
-        
-        self.fitted = False
-        self.connected = False
-        self.connections = []
-        if cluster :
-            self.cluster = True
-            self.graph = Digraph(target, format='png')
-            self.graph.attr('node', shape='doublecircle')
-            self.graph.attr(label='Reaction Path Diagram')
-            self.graph.attr(size='20,20!')
-            self.color_index = self.initialize_color_index()
-            self.arrow_max_width = 5
-            self.tag_reactant = " | R"
-            self.tag_product = " | P "
-        else:
-            self.cluster = False
-            self.reac_graph = Digraph(target, format='png')
-            self.reac_graph.attr('node', shape='doublecircle')
-            self.reac_graph.attr(color='lightgrey')
-            self.reac_graph.attr(size='20,20!')
-            self.reac_graph.attr(label='Reaction Path Diagram')
-            self.prod_graph = Digraph('subgraph')
-            self.prod_graph.attr(size='20,20!')
-            self.color_index = self.initialize_color_index()
-            self.arrow_max_width = 5
-            self.tag_reactant = " | R"
-            self.tag_product = " | P "
-    """
+
     def fit(self):
         """
         Method to define graphical nodes for each unique specie at the reactant and 
@@ -183,8 +128,7 @@ class ReactionPathDiagram():
         
         self.fitted = True
         
-    def connect(self, graphics_dict={'node_color':False,'rate':True, 'arrow_size':False,
-                                     'arrow_color':True,'init_con':True,'prod_con': False},
+    def connect(self, graphics_dict=None,
                                         size=5, separate=False):
         """
         Method to make defined connections between system node with specific graphics.
@@ -218,6 +162,9 @@ class ReactionPathDiagram():
         #Check if graph connected
         if self.fitted == False:
             raise AttributeError("Please call fit() method first.")
+
+        if graphics_dict == None:
+            raise AttributeError("Graphics dictionary not passed.")
             
         #Check if graphics dictionary is in readable form    
         if sum([0 if (i[1]==True or i[1]==False) else 1 for i in graphics_dict.items()])!=0:
@@ -235,16 +182,12 @@ class ReactionPathDiagram():
         else:
             reac_conc = dict([(i,size) for ind, i in enumerate(self.unique_species)])
 
-        print (reac_conc)
-        print(prod_conc)
-
         #Build Nodes
         if self.cluster:
             self.build_nodes_cluster(graphics_dict, separate, reac_conc, prod_conc, reac_color="Green", prod_color="Red")
         else:
             self.build_nodes_free(graphics_dict, separate, reac_conc, prod_conc, reac_color="Green", prod_color="Red")
 
-        
         #Build Connections
         for connection in self.connections:
             if separate:
@@ -297,7 +240,6 @@ class ReactionPathDiagram():
                 c.attr(label='Reactants')
                 for index, specie in enumerate(self.unique_species):
                     temp_size = str((reac_conc[specie]/max_conc_reac)*self.max_node_size)
-                    #print("reactant", specie, temp_size)
                     if graphics_dict['node_color']==True:
                         c.node(specie+self.tag_reactant, **{'width':temp_size, 'height':temp_size}, color=reac_color)
                     else:
@@ -308,7 +250,6 @@ class ReactionPathDiagram():
                 c.attr(label='Products')
                 for index, specie in enumerate(self.unique_species):
                     temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
-                    #print("product", specie, temp_size)
                     if graphics_dict['node_color']==True:
                         c.node(specie+self.tag_product, **{'width':temp_size, 'height':temp_size}, color=prod_color)
                     else:
@@ -317,7 +258,6 @@ class ReactionPathDiagram():
             #Define Single Cluster
             for index, specie in enumerate(self.unique_species):
                 temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
-                print(specie, temp_size)
                 if graphics_dict['node_color']==True:
                     self.graph.node(specie, **{'width':temp_size, 'height':temp_size}, color=reac_color)
                 else:
