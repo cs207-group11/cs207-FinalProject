@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
 
 """Module for setting up reaction system."""
 
@@ -141,8 +143,7 @@ class ReactionSystem(object):
 
 
     def step(self, dt):
-        '''
-        Solve the ODE， get the state after dt time
+        """Solve the ODE， get the state after dt time
 
         INPUTS:
         -------
@@ -152,7 +153,6 @@ class ReactionSystem(object):
         RETURNS:
         --------
         (self.r.t, self.r.y) : tuple
-            current time and current concentration
-        '''
+            current time and current concentration"""
         self.r.integrate(self.r.t + dt)
         return self.r.t, self.r.y
