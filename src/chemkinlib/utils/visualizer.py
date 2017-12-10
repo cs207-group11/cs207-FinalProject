@@ -80,7 +80,6 @@ class ReactionPathDiagram():
         self.fitted = False
         self.connected = False
         self.connections = []
-        print(target)
         if cluster :
             self.cluster = True
             self.graph = Digraph(target, format='png')
@@ -181,9 +180,6 @@ class ReactionPathDiagram():
         else:
             reac_conc = dict([(i,size) for ind, i in enumerate(self.unique_species)])
 
-        print (reac_conc)
-        print(prod_conc)
-
         #Build Nodes
         if self.cluster:
             self.build_nodes_cluster(graphics_dict, separate, reac_conc, prod_conc, reac_color="Green", prod_color="Red")
@@ -243,7 +239,6 @@ class ReactionPathDiagram():
                 c.attr(label='Reactants')
                 for index, specie in enumerate(self.unique_species):
                     temp_size = str((reac_conc[specie]/max_conc_reac)*self.max_node_size)
-                    #print("reactant", specie, temp_size)
                     if graphics_dict['node_color']==True:
                         c.node(specie+self.tag_reactant, **{'width':temp_size, 'height':temp_size}, color=reac_color)
                     else:
@@ -254,7 +249,6 @@ class ReactionPathDiagram():
                 c.attr(label='Products')
                 for index, specie in enumerate(self.unique_species):
                     temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
-                    #print("product", specie, temp_size)
                     if graphics_dict['node_color']==True:
                         c.node(specie+self.tag_product, **{'width':temp_size, 'height':temp_size}, color=prod_color)
                     else:
@@ -263,7 +257,6 @@ class ReactionPathDiagram():
             #Define Single Cluster
             for index, specie in enumerate(self.unique_species):
                 temp_size = str((prod_conc[specie]/max_conc_prod)*self.max_node_size)
-                print(specie, temp_size)
                 if graphics_dict['node_color']==True:
                     self.graph.node(specie, **{'width':temp_size, 'height':temp_size}, color=reac_color)
                 else:

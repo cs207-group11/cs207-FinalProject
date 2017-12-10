@@ -24,7 +24,7 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                                   temperature,
                                   concentration)
 
-target = "final/results"
+target = "results/final"
 graphics_dict = {'node_color':False,'rate':False,'arrow_size':False,'arrow_color':True,'init_con':True,'prod_con': True}
 #compute the concentration change with timestep
 
