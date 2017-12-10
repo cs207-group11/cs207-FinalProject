@@ -19,7 +19,7 @@ There are two options for installing ChemKinLib:
 
 1) Clone the repository into you local system.
 
-2) Execute in terminal: `python setup.py install` or `python -m pip install -e .`
+2) Execute in terminal: `python3 setup.py install` or `python3 -m pip install -e .`
 
 OR
 
@@ -28,7 +28,7 @@ OR
 2) Try executing `import chemkinlib` to test the installation in your terminal.
 
 ## Examples
-There are two examples in the `examples` subdirectory: (a) `rev_rxn.py` (system of reversible, elementary reactions) and (b) `irrev_rxn.py` (system of irreversible, elementary reactions). They show the user how to set up a calculation using ChemKinLib to compute the reaction rate of each specie involved in the reactions.
+There are two examples in the `examples` subdirectory: (a) `rev_rxns.py` (system of reversible, elementary reactions) and (b) `irrev_rxns.py` (system of irreversible, elementary reactions). They show the user how to set up a calculation using ChemKinLib to compute the reaction rate of each specie involved in the reactions. In addition, there is an iPython notebook tutorial (`basic-tutorial.ipynb`) that goes through the steps to compute reaction rates for a set of irreversible reactions.
 
 ## Documentation
 The documentation for the library can be found [here](https://github.com/cs207-group11/cs207-FinalProject/blob/master/CS207_Documentation.pdf).
