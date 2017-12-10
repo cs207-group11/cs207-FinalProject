@@ -4,3 +4,4 @@ graphviz
 moviepy
 pytest
 imageio
+jupyter
