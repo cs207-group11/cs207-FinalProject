@@ -1,12 +1,13 @@
 
 """Module for parser for reactions."""
 
-from chemkin import *
-
 import sqlite3
 import numpy
 import os.path
 import xml.etree.ElementTree as ET
+
+from chemkinlib.reactions import Reactions
+from chemkinlib.config import DATA_DIRECTORY
 
 
 class ReactionParser():
@@ -221,7 +222,7 @@ class ReactionParser():
         nasa_coeffs : numpy.ndarray
             nasa coefficients for species in reaction
         """
-        db = sqlite3.connect('NASA_poly_coeff.sqlite')
+        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeff.sqlite')
         cursor = db.cursor()
 
         if temp_range not in ['high', 'low']:
@@ -256,7 +257,7 @@ class ReactionParser():
         T_mid : float
             mid T value
         """
-        db = sqlite3.connect('NASA_poly_coeff.sqlite')
+        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeff.sqlite')
         cursor = db.cursor()
         cursor.execute('''SELECT TLOW FROM HIGH WHERE SPECIES_NAME = ?''', (species_name,))
         Tmid = cursor.fetchone()[0]
@@ -303,14 +304,14 @@ class ReactionParser():
                 
                 # IRREVERSIBLE elementary reaction case
                 if is_reversible == False and rxn_type == "Elementary":
-                    rxn = IrreversibleReaction(rxn_type, is_reversible, rxn_equation,
+                    rxn = Reactions.IrreversibleReaction(rxn_type, is_reversible, rxn_equation,
                                            species, rate_coeffs_components,
                                            reactant_stoich_coeffs, product_stoich_coeffs)
                     self.reaction_list.append(rxn)
 
                 # REVERSIBLE elementary reaction case
                 elif is_reversible == True and rxn_type == "Elementary":
-                    rxn = ReversibleReaction(rxn_type, is_reversible, rxn_equation,
+                    rxn = Reactions.ReversibleReaction(rxn_type, is_reversible, rxn_equation,
                                          species, rate_coeffs_components,
                                          reactant_stoich_coeffs, product_stoich_coeffs)
                     self.reaction_list.append(rxn)
