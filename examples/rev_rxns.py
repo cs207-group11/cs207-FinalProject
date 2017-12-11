@@ -24,7 +24,7 @@ rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list,
                                   temperature,
                                   concentration)
 
-target = "C:/Users/karan/Desktop/Me/My_Coursework/Fall_2017/CS207/Course Materials/final"
+target = "outputs/"
 graph_dict = {'node_color':True,'rate':False,'arrow_size':True,'arrow_color':True,'init_con':True,'prod_con': True}
 #compute the concentration change with timestep
 
