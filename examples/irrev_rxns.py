@@ -35,7 +35,7 @@ for i in range(3):
     graph.plot()
 
 imgs = [target+str(i)+".gv.png" for i in range(3)]
-graph.create_video(imgs, target)
+graph.create_video(imgs, target+'output_video')
 
 # Compute and sort reaction rates
 rxnrates_dict = rxnsys.sort_reaction_rates()
