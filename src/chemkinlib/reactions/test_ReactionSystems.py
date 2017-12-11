@@ -1,4 +1,6 @@
 
+"""Test module for ReactionSystems."""
+
 import numpy
 import os
 import pytest
@@ -7,7 +9,6 @@ import warnings
 from chemkinlib.config import DATA_DIRECTORY
 from chemkinlib.utils import Parser 
 from chemkinlib.reactions import Reactions, ReactionSystems
-
 
 # Treat warnings like errors (for testing purposes)
 warnings.simplefilter("error")
@@ -66,15 +67,15 @@ def test_rxn_sys_get_reaction_rate_for_3_rxns():
 def test_rxn_sys_get_lowT_nasa_matrix(test_rxn_sys):
     """Tests function to fetch NASA coefficients of appropriate T and appropriate species in reaction."""
     # Order of low T range NASA coefficients: H, H2O, O2
-    expected_nasa = {'H': numpy.array([2.50000000e+00, 0.00000000e+00,
-                                       0.00000000e+00, 0.00000000e+00, 
-                                       0.00000000e+00, 2.54716270e+04, -4.60117608e-01]),
-                    'H2O': numpy.array([3.38684249e+00, 3.47498246e-03,
-                                        -6.35469633e-06, 6.96858127e-09,
-                                        -2.50658847e-12, -3.02081133e+04, 2.59023285e+00]),
-                    'O2': numpy.array([3.21293640e+00, 1.12748635e-03,
-                                       -5.75615047e-07, 1.31387723e-09,
-                                       -8.76855392e-13, -1.00524902e+03, 6.03473759e+00])}
+    expected_nasa = {'H': numpy.array([2.50000001e+00, -2.30842973e-11, 1.61561948e-14,
+                                      -4.73515235e-18, 4.98197357e-22, 2.54736599e+04,
+                                      -4.46682914e-01]),
+                    'H2O': numpy.array([3.03399249e+00, 2.17691804e-03, -1.64072518e-07,
+                                       -9.70419870e-11, 1.68200992e-14, -3.00042971e+04,
+                                       4.96677010e+00]),
+                    'O2': numpy.array([3.28253784e+00, 1.48308754e-03, -7.57966669e-07,
+                                      2.09470555e-10, -2.16717794e-14, -1.08845772e+03,
+                                      5.45323129e+00])}
 
     
     # expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
@@ -96,15 +97,15 @@ def test_rxn_sys_get_highT_nasa_matrix():
     concentrations = {'H':1, 'O2':1, 'H2O':1}
     rxnsys = ReactionSystems.ReactionSystem(parser.reaction_list, parser.NASA_poly_coefs, temp, concentrations)
     # Order of high T range NASA coefficients: H, H2O, O2
-    expected_nasa = {'O2': numpy.array([3.69757819e+00, 6.13519689e-04,
-                                       -1.25884199e-07, 1.77528148e-11,
-                                       -1.13643531e-15,  -1.23393018e+03, 3.18916559e+00]),
-                    'H2O': numpy.array([2.67214561e+00, 3.05629289e-03,
-                                       -8.73026011e-07, 1.20099639e-10,
-                                       -6.39161787e-15,  -2.98992090e+04, 6.86281681e+00]),
-                    'H': numpy.array([2.50000000e+00, 0.00000000e+00,
-                                     0.00000000e+00, 0.00000000e+00,
-                                     0.00000000e+00, 2.54716270e+04, -4.60117638e-01])}
+    expected_nasa = {'O2': numpy.array([3.78245636e+00, -2.99673416e-03, 9.84730201e-06,
+                                       -9.68129509e-09, 3.24372837e-12, -1.06394356e+03,
+                                       3.65767573e+00]),
+                    'H2O': numpy.array([4.19864056e+00, -2.03643410e-03, 6.52040211e-06,
+                                       -5.48797062e-09, 1.77197817e-12, -3.02937267e+04,
+                                       -8.49032208e-01]),
+                    'H': numpy.array([2.50000000e+00, 7.05332819e-13, -1.99591964e-15,
+                                     2.30081632e-18, -9.27732332e-22, 2.54736599e+04,
+                                     -4.46682853e-01])}
     # expected_nasa = numpy.array([[2.50000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 
     #                             0.00000000e+00, 2.54716270e+04, -4.60117608e-01],
     #                             [2.67214561e+00, 3.05629289e-03, -8.73026011e-07, 1.20099639e-10,
@@ -130,15 +131,15 @@ def test_rxn_sys_rev_reaction():
     #                             -2.50658847e-12, -3.02081133e+04, 2.59023285e+00],
     #                             [3.21293640e+00, 1.12748635e-03, -5.75615047e-07, 1.31387723e-09,
     #                             -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]])
-    expected_nasa = {'O2': numpy.array([3.21293640e+00, 1.12748635e-03,
-                                       -5.75615047e-07, 1.31387723e-09,
-                                       -8.76855392e-13, -1.00524902e+03, 6.03473759e+00]),
-                    'H2O': numpy.array([3.38684249e+00, 3.47498246e-03,
-                                       -6.35469633e-06, 6.96858127e-09,
-                                       -2.50658847e-12, -3.02081133e+04, 2.59023285e+00]),
-                    'H': numpy.array([2.50000000e+00, 0.00000000e+00,
-                                     0.00000000e+00, 0.00000000e+00,
-                                     0.00000000e+00, 2.54716270e+04, -4.60117608e-01])}
+    expected_nasa = {'O2': numpy.array([3.28253784e+00, 1.48308754e-03, -7.57966669e-07,
+                                       2.09470555e-10, -2.16717794e-14, -1.08845772e+03,
+                                       5.45323129e+00]),
+                    'H2O': numpy.array([3.03399249e+00, 2.17691804e-03, -1.64072518e-07,
+                                       -9.70419870e-11, 1.68200992e-14, -3.00042971e+04,
+                                       4.96677010e+00]),
+                    'H': numpy.array([2.50000001e+00, -2.30842973e-11, 1.61561948e-14, 
+                                     -4.73515235e-18, 4.98197357e-22, 2.54736599e+04,
+                                     -4.46682914e-01])}
     rev_rxn_obj = parser.reaction_list[0]
     #assert numpy.isclose(rev_rxn_obj.NASA_poly_coefs, expected_nasa).all()
     assert (numpy.isclose(rev_rxn_obj.NASA_poly_coefs_dict['H2O'], expected_nasa['H2O'])).all()

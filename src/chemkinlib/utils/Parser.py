@@ -1,20 +1,20 @@
 
-"""Module for parser for reactions."""
+"""Module for parsing reaction parameters."""
 
-import sqlite3
 import numpy
 import os.path
+import sqlite3
 import xml.etree.ElementTree as ET
 
-from chemkinlib.reactions import Reactions
+# path to the xml files
 from chemkinlib.config import DATA_DIRECTORY
+from chemkinlib.reactions import Reactions
 
 
 class ReactionParser():
-    """Class for parsing input xml file describing reactions"""
-
+    """Class for parsing input xml file describing reactions."""
     def __init__(self, xml_filename):
-        """Initializes ReactionParser
+        """Initializes ReactionParser.
 
         INPUTS:
         -------
@@ -25,6 +25,15 @@ class ReactionParser():
         -----------
         reaction_list : list
             list of Reaction (or Reaction-inherited) objects
+        rxns : xml.etree.ElementTree.Element
+            root node of xml tree
+        species : dict[str]
+            dictionary of specie names
+        NASA_poly_coefs : dict
+            dictionary that will contain NASA polynomial
+            coefficients at high and low temperature ranges
+            (see class function get_NASA_poly_coefs() for exact
+            form)
 
         NOTES:
         ------
@@ -39,18 +48,18 @@ class ReactionParser():
             raise IOError("Reaction (xml) file not found!")
 
         self.reaction_list = []
-        self.get_species()
-        self.get_NASA_poly_coefs()
-        self.get_reaction_list()
+        self.get_species() # updates species
+        self.get_NASA_poly_coefs() # updates nasa polynoms
+        self.get_reaction_list() # appendsto reaction_list
 
     def get_species(self):
-        """Returns reaction species
+        """Returns reaction species from input.
         
         RETURNS:
         --------
-        species: a list of species as dictionary
-                in the form: key = species name, value = None,
-                value will be filled after we obtain the concentration from user.
+        species: dict[str]  
+            dictionary of the form: key = species name, value = None
+            (used to order information by species)
         """
         phase = self.rxns.findall('phase')
         species_list = []
@@ -63,29 +72,34 @@ class ReactionParser():
         return self.species
 
     def get_rxn_type(self, reaction):
-        """Returns reaction type
+        """Returns reaction type from input.
 
         INPUTS:
         -------
-        reaction: parsed xml file which contains information about reactions
+        reaction : xml.etree.ElementTree.Element
+            parsed xml file information about reactions
 
         RETURNS:
         --------
-        rxn_type: a string describe reaction's type, such as "elementary".
+        rxn_type : str
+            string describing reaction type (e.g. "elementary")
         """
         rxn_type = reaction.get('type')
         return rxn_type
 
     def get_is_reversible(self, reaction):
-        """Returns information about whether the reaction is reversible
+        """Returns information about whether the reaction is reversible.
         
         INPUTS:
         -------
-        reaction: parsed xml file which contains information about reactions
+        reaction : xml.etree.ElementTree.Element
+            parsed xml file information about reactions
         
         RETURNS:
         --------
-        is_reversible: a boolean, True = reversible and False = irreversible
+        is_reversible : bool
+            if True, reversible
+            if False, irreversible
         """
         if reaction.get('reversible') == "yes":
             is_reversible = True
@@ -94,30 +108,34 @@ class ReactionParser():
         return is_reversible
 
     def get_rxn_equation(self,reaction):
-        """Returns reaction equation
+        """Returns reaction equation from input.
         
         INPUTS:
         -------
-        reaction: parsed xml file which contains information about reactions
+        reaction : xml.etree.ElementTree.Element
+            parsed xml file information about reactions
         
         RETURNS:
         --------
-        rxn_equation: a string, reaction equation
+        rxn_equation : str
+            a string representation of reaction equation
         """
         rxn_equation = reaction.find('equation').text
         return rxn_equation
 
-    def get_rate_coeffs_components(self,reaction):
+    def get_rate_coeffs_components(self, reaction):
         """Returns reaction rate coefficient components
-        based on type of coefficient
+        based on type of coefficient.
         
         INPUTS:
         -------
-        reaction: parsed xml file which contains information about reactions
+        reaction : xml.etree.ElementTree.Element
+            parsed xml file information about reactions
         
         RETURNS:
         --------
-        rate_coeffs_components: a dictionary, as the form of {coefficient name: coefficient value}. 
+        rate_coeffs_components : dict
+            a dictionary of the form {coefficient component name: coefficient component value}. 
         """
         for coef in reaction.findall('rateCoeff'):
 
@@ -170,16 +188,18 @@ class ReactionParser():
                 }
             return rate_coeffs_components
 
-    def get_reactant_stoich_coeffs(self,reaction):
-        """Returns reactant stoichiometric coefficients
+    def get_reactant_stoich_coeffs(self, reaction):
+        """Returns reactant stoichiometric coefficients from input.
         
         INPUTS:
         -------
-        reaction: parsed xml file which contains information about reactions
+        reaction : xml.etree.ElementTree.Element
+            parsed xml file information about reactions
         
         RETURNS:
         --------
-        reactant_stoich_coeffs: a dictionary, as the form of {reactant name: coefficient}. 
+        reactant_stoich_coeffs : dict
+            dictionary in the form {reactant name: stoich coefficient}. 
         """
         reactant_stoich_coeffs = {}
         for reactant in reaction.find('reactants').text.split():
@@ -189,15 +209,17 @@ class ReactionParser():
         return reactant_stoich_coeffs
     
     def get_product_stoich_coeffs(self, reaction):
-        """Returns product stoichiometric coefficients
+        """Returns product stoichiometric coefficients from input.
         
         INPUTS:
         -------
-        reaction: parsed xml file which contains information about reactions
+        reaction : xml.etree.ElementTree.Element
+            parsed xml file information about reactions
         
         RETURNS:
         --------
-        product_stoich_coeffs: a dictionary, as the form of {product name: coefficient}. 
+        product_stoich_coeffs : dict
+            dictionary in the form {product name: stoich coefficient}. 
         """
         product_stoich_coeffs = {}
         for product in reaction.find('products').text.split():
@@ -222,7 +244,7 @@ class ReactionParser():
         nasa_coeffs : numpy.ndarray
             nasa coefficients for species in reaction
         """
-        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeff.sqlite')
+        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeffs.sqlite')
         cursor = db.cursor()
 
         if temp_range not in ['high', 'low']:
@@ -239,13 +261,12 @@ class ReactionParser():
                            WHERE SPECIES_NAME = ?''', (species_name,))
 
         nasa_coeffs = numpy.array(cursor.fetchone())
-        # print(species_name, nasa_coeffs)
         db.commit()
         db.close()
         return nasa_coeffs
 
     def get_Tmid(self, species_name):
-        """Returns middle T value.
+        """Returns middle temperature (T) value.
 
         INPUTS:
         -------
@@ -255,9 +276,10 @@ class ReactionParser():
         RETURNS:
         --------
         T_mid : float
-            mid T value
+            mid temperature value (ie separates
+            low and high temperature ranges)
         """
-        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeff.sqlite')
+        db = sqlite3.connect(DATA_DIRECTORY + '/' + 'NASA_poly_coeffs.sqlite')
         cursor = db.cursor()
         cursor.execute('''SELECT TLOW FROM HIGH WHERE SPECIES_NAME = ?''', (species_name,))
         Tmid = cursor.fetchone()[0]
@@ -266,31 +288,29 @@ class ReactionParser():
         return Tmid
 
     def get_NASA_poly_coefs(self):
-        """Parses all information for all reactions
+        """Fetches and updates all NASA polynomial coefficients (high and low temperature)
+        for all species.
 
         RETURNS:
         --------
-        NASA_poly_coeffs: list[dict]
-            List of stored NASA coefficients for each species. Within each dictionary,
-                key = low, value = coeff in low temp range and
-                key = high, value = coeff in high temp range
+        NASA_poly_coeffs: dict
+            Dictionary of the form {species name : dict of NASA polynomial coefficients}
+            where the inner dictionary has keys 'high' (with value, array of coeffs in high T),
+            'low' (with value, array of coeffs in low T), and 'Tmid' (with value, float of middle T)
         """
         NASA_poly_coefs = {}
-        #NASA_poly_coefs = []
         for species_name in self.species:
             coef = {}
             coef['Tmid'] = self.get_Tmid(species_name)
             coef['low'] = self.get_coeffs(species_name, 'low')
             coef['high'] = self.get_coeffs(species_name, 'high')
             NASA_poly_coefs[species_name] = coef
-            #NASA_poly_coefs.append(coef)
         self.NASA_poly_coefs = NASA_poly_coefs
-        #print(self.NASA_poly_coefs)
         return self.NASA_poly_coefs
 
     def get_reaction_list(self):
-        """Appends a Reaction/Reaction-inherited object fo each reaction described by
-        input xml file to self.reaction_list.
+        """Appends a Reaction/Reaction-inherited object to each reaction
+        described by input xml file to reaction_list.
         """
         for reactionData in self.rxns.findall('reactionData'):
             for reaction in reactionData.findall('reaction'):
